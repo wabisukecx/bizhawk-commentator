@@ -1,6 +1,6 @@
 # English names used in English commentary
 
-Only names that are well established in the official English releases are listed as **official**; everyone else is a Hepburn romanization of the Japanese name and is shown as a **fallback**. To change a name, edit `OFFICIAL` in `app/games/fe1-i18n.js` (keyed by the game character ID).
+Only names that are well established in the official English releases are listed as **official**; everyone else is a Hepburn romanization of the Japanese name and is shown as a **fallback**. To change a name, edit `OFFICIAL` in this pack's `app/fe1-i18n.js` (keyed by the game character ID).
 
 | ID | Japanese | English | Source |
 |---|---|---|---|

@@ -3,4 +3,4 @@
 local folder = (debug.getinfo(1, "S").source:sub(2):match("^(.*[/\\])")) or ""
 local ok, err = pcall(dofile, folder .. "scene-probe.lua")
 if not ok then console.log("[scene-probe] failed to start: " .. tostring(err)) end
-dofile(folder .. "../../lua/bridge.lua")
+dofile(folder .. "../../../lua/bridge.lua")

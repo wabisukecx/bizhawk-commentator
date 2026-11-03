@@ -1,6 +1,6 @@
 // Local play-by-play: fixed wording from observed differences, no model call.
 // Each line pairs the change with the situation around it; a bare change is not worth saying.
-import { phrase } from '../tones.js';
+import { phrase } from '#commentator/host';
 import { unitName, battleName } from './fe1-names.js';
 import { englishName } from './fe1-i18n.js';
 

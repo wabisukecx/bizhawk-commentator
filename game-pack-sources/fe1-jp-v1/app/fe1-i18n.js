@@ -2,7 +2,7 @@ import { playerNames, enemyNames, battleName } from './fe1-names.js';
 
 // English names for the Japanese Famicom game. Only names that are well established in the official English
 // releases are listed; every other character falls back to a Hepburn romanization of the Japanese name.
-// OFFICIAL is keyed by the game's character ID (the same IDs as the name table in lua/profiles/fe1.lua).
+// OFFICIAL is keyed by the game's character ID (the same IDs as the name table in lua/fe1.lua).
 export const OFFICIAL = Object.freeze({
   1: 'Marth', 2: 'Caeda', 3: 'Jagen', 4: 'Cain', 5: 'Abel', 6: 'Draug', 7: 'Gordin', 12: 'Barst', 14: 'Ogma',
   16: 'Julian', 17: 'Lena', 18: 'Merric', 19: 'Navarre', 20: 'Hardin', 29: 'Catria', 30: 'Maria',

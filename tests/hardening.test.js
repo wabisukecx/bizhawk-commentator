@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { parseComment } from '../app/claude.js';
-import { reviewComment } from '../app/games/fe1.js';
+import { reviewComment } from '../game-pack-sources/fe1-jp-v1/app/fe1.js';
 import { captureState } from '../src/context.js';
 
 test('parseComment rejects over-long, multi-line and empty spoken captions', () => {

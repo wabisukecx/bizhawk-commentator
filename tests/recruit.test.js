@@ -3,10 +3,10 @@ import assert from 'node:assert/strict';
 import { createRequire } from 'node:module';
 import { fileURLToPath } from 'node:url';
 import { Watcher } from '../app/watcher.js';
-import { playByPlay } from '../app/games/fe1-play.js';
-import { selectedUnit, recruitHighlight } from '../app/games/fe1.js';
-import { localizedTone } from '../app/tones.js';
-import { localizeSnapshot } from '../app/games/fe1-i18n.js';
+import { playByPlay } from '../game-pack-sources/fe1-jp-v1/app/fe1-play.js';
+import { selectedUnit, recruitHighlight } from '../game-pack-sources/fe1-jp-v1/app/fe1.js';
+import { localizedTone } from '../game-pack-sources/fe1-jp-v1/app/tone.js';
+import { localizeSnapshot } from '../game-pack-sources/fe1-jp-v1/app/fe1-i18n.js';
 const require = createRequire(import.meta.url);
 const { lua, lauxlib, lualib, to_luastring, to_jsstring } = require('fengari');
 const folder = fileURLToPath(new URL('../lua/', import.meta.url)).replaceAll('\\', '/');
@@ -16,7 +16,7 @@ test('the observer reports a character seen for the first time as joined, but no
   lualib.luaL_openlibs(state);
   const source = `
     local observations = dofile(${JSON.stringify(folder + 'observations.lua')})
-    local observer = observations.new("s", "tactical-map-v1")
+    local observer = observations.new("s", "fe1-map-v2")
     local function unit(key, pid, name) return { key = key, side = "player", character_id = pid, name = name, class_name = "ロード", level = 1, hp = 18, max_hp = 18, x = 1, y = 1 } end
     local function world(chapter, units) return { chapter = chapter, turn = 1, units = units } end
     local marth, daros, abel = unit("player:0", 1, "マルス"), unit("player:1", 15, "ダロス"), unit("player:2", 5, "アベル")
@@ -43,7 +43,7 @@ test('without a chapter change, the recruit is in the history with name, class a
   lualib.luaL_openlibs(state);
   const source = `
     local observations = dofile(${JSON.stringify(folder + 'observations.lua')})
-    local observer = observations.new("s", "tactical-map-v1")
+    local observer = observations.new("s", "fe1-map-v2")
     local function unit(key, pid, name) return { key = key, side = "player", character_id = pid, name = name, class_name = "かいぞく", level = 1, hp = 20, max_hp = 20, x = 1, y = 1 } end
     local marth, abel, daros = unit("player:0", 1, "マルス"), unit("player:2", 5, "アベル"), unit("player:3", 15, "ダロス")
     observer:sample(10, "H", { chapter = 1, turn = 1, units = { marth, abel } })
@@ -123,7 +123,7 @@ test('enemy records are named from the enemy name table of the game (173 is Daro
   const state = lauxlib.luaL_newstate();
   lualib.luaL_openlibs(state);
   const source = `
-    local profile = dofile(${JSON.stringify(folder + 'profiles/fe1.lua')})
+    local profile = dofile(${JSON.stringify(folder + '../game-pack-sources/fe1-jp-v1/lua/fe1.lua')})
     local mem = { [0x7674]=2,[0x7675]=3,[0x7676]=20,[0x7677]=31, [0x6a90]=1,[0x6a91]=21,[0x6a92]=1,[0x6a93]=18,[0x6a94]=18,[0x6aa0]=6,[0x6aa1]=25,
       [0x7078]=173,[0x7079]=8,[0x707a]=3,[0x707b]=21,[0x707c]=21,[0x7088]=4,[0x7089]=24,
       [0x7078+27]=133,[0x7079+27]=8,[0x707a+27]=1,[0x707b+27]=18,[0x707c+27]=18,[0x7088+27]=5,[0x7089+27]=20 }

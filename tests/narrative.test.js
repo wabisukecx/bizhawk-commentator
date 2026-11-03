@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { selectCandidate, reviewComment } from '../app/games/fe1.js';
+import { selectCandidate, reviewComment } from '../game-pack-sources/fe1-jp-v1/app/fe1.js';
 import { Watcher } from '../app/watcher.js';
 
 const unit = (key, side, x, y, hp = 18) => ({ key, character_id: key, side, x, y, hp, max_hp: 18 });

@@ -1,5 +1,5 @@
-export const SERVICE_VERSION = '0.3.0';
+export const SERVICE_VERSION = '0.4.0';
 
-// 0.3.0 adds ZIP preparation; protocol 1 and the observation RPCs are unchanged
-// from 0.2.2. The connecting client prepares packs even when an older broker is reused.
-export const COMPATIBLE_SERVICE_VERSIONS = Object.freeze(['0.2.2', SERVICE_VERSION]);
+// ZIP preparation and generic game logs keep protocol 1 and its observation RPCs.
+// Older brokers preserve the added fields. The connecting client prepares pack registrations.
+export const COMPATIBLE_SERVICE_VERSIONS = Object.freeze(['0.2.2', '0.3.0', SERVICE_VERSION]);

@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { analyzeBattle } from '../app/games/fe1-play.js';
-import { orientBattle } from '../app/games/fe1.js';
+import { analyzeBattle } from '../game-pack-sources/fe1-jp-v1/app/fe1-play.js';
+import { orientBattle } from '../game-pack-sources/fe1-jp-v1/app/fe1.js';
 
 // Three recorded fights that ended with a unit going down. In every fight the fight data lists our unit first.
 // order_flag_raw is $0302: 0 when we started the fight, 1 when the enemy did.
@@ -63,8 +63,8 @@ test('a critical triples the damage in the replay (capped at 120); an inconsiste
 });
 
 test('a recorded level-up reports weapon level with the other stats, in the stats window order', async () => {
-  const { playByPlay } = await import('../app/games/fe1-play.js');
-  const { localizedTone } = await import('../app/tones.js');
+  const { playByPlay } = await import('../game-pack-sources/fe1-jp-v1/app/fe1-play.js');
+  const { localizedTone } = await import('../game-pack-sources/fe1-jp-v1/app/tone.js');
   // 13:55:06: Draug (armor knight) level 1 to 2: HP 18 to 19, skill 3 to 4, weapon level 4 to 5.
   const draug = fighter(6, 'ドーガ', 'アーマーナイト', 1, 17, 18, 17, 8, { hit_first: true, strength: 7, skill: 3, weapon_level: 4, speed: 3, luck: 1, defense: 11 });
   const leveled = { id: 9, order_flag_raw: 0, follow_up: 1, exp: 96, exp_gained: 24,

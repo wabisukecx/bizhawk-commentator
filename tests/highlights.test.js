@@ -1,9 +1,9 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { Watcher } from '../app/watcher.js';
-import { playByPlay, analyzeBattle } from '../app/games/fe1-play.js';
-import { battleHighlight } from '../app/games/fe1.js';
-import { tones, localizedTone } from '../app/tones.js';
+import { playByPlay, analyzeBattle } from '../game-pack-sources/fe1-jp-v1/app/fe1-play.js';
+import { battleHighlight } from '../game-pack-sources/fe1-jp-v1/app/fe1.js';
+import { tones, localizedTone } from '../game-pack-sources/fe1-jp-v1/app/tone.js';
 
 const unit = (key, side, extra = {}) => ({ key, side, character_id: 4, name: side === 'player' ? 'カイン' : undefined, class_name: side === 'player' ? 'ソシアルナイト' : 'かいぞく', hp: 18, max_hp: 18, x: 5, y: 5, ...extra });
 const world = units => ({ profile_id: 'fe1-jp-v1', chapter: 1, turn: 1, units });
@@ -60,11 +60,11 @@ test('only defeats and criticals produce a highlight, with the side that was hit
   assert.equal(crit.context.facts.critical_by, 'オグマ');
 });
 
-test('a defeat gets one emotional spoken line after the fight, which never interrupts speech and is not stale-checked', async () => {
+test('a defeat offers recent-flow analysis after the fight, without interrupting narration or replaying the topic', async () => {
   let now = 0;
   const calls = [];
   const watcher = new Watcher({ authenticate: async () => ({ plan: 'pro' }), includedOnlyConfirmed: true, clock: () => now, tone: 'passion',
-    generate: async (payload, options) => { calls.push({ payload, options }); return { speak: true, comment: 'やった、ついに仕留めた！' }; } });
+    generate: async (payload, options) => { calls.push({ payload, options }); return { speak: true, comment: '敵が減って、前線の並びも薄くなったね。' }; } });
   await watcher.start('lively', { includedOnlyConfirmed: true });
   const base = [unit('player:0', 'player', { character_id: 14, name: 'オグマ' }), unit('enemy:0', 'enemy', { character_id: 133 })];
   const poll = (units, log) => ({ game_state: world(units), recent_observations: { timeline_id: 't', events: [] }, battle_log: log });
@@ -77,6 +77,8 @@ test('a defeat gets one emotional spoken line after the fight, which never inter
   await watcher.maybeGenerate();
   assert.equal(calls.length, 1);
   assert.equal(calls[0].payload.context.topic, 'battle_highlight');
+  assert.equal(calls[0].payload.recent_flow.before.units.length, 2);
+  assert.equal(calls[0].payload.recent_flow.after.units.length, 1);
   assert.match(calls[0].options.instructions, /山場/);
   assert.equal(watcher.history.length, 1);
   assert.equal(watcher.history[0].intensity, 'normal', 'stored as normal so the speech queue does not cut off the narration');

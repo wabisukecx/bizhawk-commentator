@@ -1,6 +1,8 @@
 # ゲームパックの作成と導入
 
-ゲームごとのROM識別・RAM読み取り・差分検出・実況ルール・名前表を、1個のZIPとして追加できます。本体のレジストリを編集する必要はありません。パックAPIの現行版は`1`です。
+ゲームごとのROM識別・RAM読み取り・差分検出・実況ルール・名前表を、1個のZIPとして追加できます。本体のレジストリを編集する必要はありません。パックAPIの現行版は`2`です。本体には特定ゲームの内蔵アダプターや解析処理を持ちません。
+
+`app/`は監視・生成・字幕・音声と共通の話し方、`lua/`は接続と汎用の読み取りを担当します。FEのソース・定型実況文・文字表・戦闘や会話の解釈・開発ツールは、すべて`game-pack-sources/fe1-jp-v1/`にあります。
 
 ## 導入・更新・削除
 
@@ -19,19 +21,23 @@ npm.cmd run game-pack -- list
 
 パックはLua／JavaScriptのコードを含みます。特にJavaScriptはアプリと同じ権限で実行されるため、信頼できる配布元のパックを使ってください。ZIPのパス・サイズ・形式の検証は、コードの安全性を保証するものではありません。
 
-## 既存FE対応を1個のZIPにする
+## ソースからZIPを作る
 
 ```powershell
-npm.cmd run game-pack -- export-fe1
+npm.cmd run game-pack -- build-all
 ```
 
-読み込み先の`game-packs/fe1-jp-v1.zip`に書き出します。Luaのプロファイルと文字表、アプリの解析・実況ロジック、人物名・英語名の表を含みます。ROM画像は含みません。既存のFE1パックがある場合は更新します。導入・更新の反映にはアプリ／MCPサービスとLuaの再起動が必要です。配布用など、別の出力先を指定する場合:
+`game-pack-sources/`直下の、`pack.json`があるソースフォルダをすべてビルドし、`game-packs/`へZIPを出力します。FEなら`game-pack-sources/fe1-jp-v1/`から`game-packs/fe1-jp-v1.zip`を作ります。ゲーム名を指定する特別な書き出し処理は本体にありません。配布用など、別の出力先へ個別にビルドする場合:
 
 ```powershell
-npm.cmd run game-pack -- export-fe1 runtime/game-packs/fe1-jp-v1.zip
+npm.cmd run game-pack -- build game-pack-sources/fe1-jp-v1 runtime/game-packs/fe1-jp-v1.zip
 ```
 
-FEは従来どおり本体内蔵でも動作します。同じIDのパックを追加すると、パック版が内蔵版に代わります。パックを外すと内蔵版に戻ります。既存実装をZIPへまとめる書き出し機能なので、ゲーム固有のコードをすべて宣言的なデータに変換するものではありません。
+`npm ci`と`npm test`もソースパックをビルドします。通常のアプリ起動はZIPだけを読みます。ZIPを外すと、そのゲームの解析と自動実況は無効になり、内蔵版へ戻ることはありません。キャッシュやソースフォルダを直接読み込むフォールバックもありません。ソースを残している場合、次のインストールやテストでZIPが再生成されることには注意してください。
+
+実行・配布にはZIPだけあればよく、`game-pack-sources/`は省略できます。ソースフォルダがない場合、インストール時のビルドは何もせず、既存ZIPをそのまま利用します。ソースの編集や開発テストをする場合だけ、このフォルダを用意します。
+
+旧API 1のZIPは再ビルドが必要です。API 2では、以前本体にあった戦闘・会話・フェーズの解釈もパックに移しています。版番号だけを書き換えず、観測エンジンと必要なランタイム処理をパック側に用意してください。FEのパック版番号は本体と独立して管理します。
 
 ## 新しいゲームの雛形
 
@@ -58,7 +64,7 @@ ZIPを手作業で作る場合も、`pack.json`を含むファイル群を最上
 
 ```json
 {
-  "apiVersion": 1,
+  "apiVersion": 2,
   "id": "example-hp-v1",
   "version": "1.0.0",
   "title": "HP example",
@@ -79,11 +85,12 @@ ZIPを手作業で作る場合も、`pack.json`を含むファイル群を最上
 - `id`: パック・Luaプロファイル・アダプターで一致させる識別子。小文字英字で始め、英小文字・数字・ハイフンで最大64文字。
 - `version`: `1.0.0`形式のパックの版。更新時のキャッシュはZIP内容のSHA-256で分離されます。
 - `rom`: BizHawkのシステムIDと、対象ROMの40桁SHA-1。別の版には、確認したハッシュを追加します。名前やワイルドカードでは照合しません。
-- `memoryDomain`: `read(address)`が参照するBizHawkのメモリドメイン。省略時は`System Bus`。パックごとに1ドメインを指定します。
+- `memoryDomain`: `read(address)`が既定で参照するBizHawkのメモリドメイン。省略時は`System Bus`。必要なら読み取り時に別ドメインも指定できます。
 - `lua`／`adapter`: ZIP内の相対パス。Luaは`.lua`、アダプターは`.js`または`.mjs`。
-- `observation`: 差分スキーマ。既存の`tactical-map-v1`を使う場合は`entry`を省略できます。独自の状態形式ではエンジンのLuaファイルを指定します。
+- `observation`: 差分スキーマとエンジンのLuaファイル。全パックで`kind`と`entry`が必要です。
+- `files`: 任意のビルド対象一覧。例: `["app", "lua", "README.md"]`。指定すると、この一覧と`pack.json`だけがZIPに入り、`dev/`などの開発資料を除外できます。省略時はソースフォルダ全体を使います。
 
-複数ZIP間でIDやROMの組み合わせが重なる場合、登録はエラーになります。独自エンジンの名前も他のパックと重複できません。パックと内蔵プロファイルが同じROMに一致する場合はパックを優先します。内蔵と同じIDを使う場合、そのパックのROM一覧がそのIDの対応範囲となります。
+複数ZIP間でIDやROMの組み合わせが重なる場合、登録はエラーになります。観測エンジンの名前も他のパックと重複できません。
 
 ## Luaの読み取りと差分エンジン
 
@@ -91,7 +98,7 @@ ZIPを手作業で作る場合も、`pack.json`を含むファイル群を最上
 
 ```lua
 local profile={id="example-hp-v1", observation_kind="example-hp-events-v1"}
-function profile.read(read, read_nametable)
+function profile.read(read, reader)
     -- read(address)で指定ドメインの1バイトを読む。
     -- 値を検証し、無効な場面ではnilと理由を返す。
     return {profile_id=profile.id, hp=read(0x0100), max_hp=read(0x0101), stage=1}
@@ -99,7 +106,7 @@ end
 return profile
 ```
 
-`read_nametable`は既存FE向けの画面タイル取得です。汎用の画像認識や、全機種共通の画面タイルAPIではありません。ROMの照合は`pack.json`を基準に本体が設定します。
+`read(address, domain)`は指定ドメインの1バイトを返します。`reader`には同じ`read_u8`、`read_bytes(address, length, domain)`、`domains()`があります。バイト列とドメイン名は1始まりの配列です。画面タイルの取得など、機種・ゲーム固有のアドレスや解釈はパックが実装します。ROMの照合は`pack.json`を基準に本体が設定します。
 
 パック側のLuaには、`read`コールバックと基本的なLua関数・文字列・テーブル・数値関数を渡します。`memory`・`joypad`・`comm`・`io`・`os`などは直接渡しません。`dofile`は同じパック内の補助ファイルだけを読み込めます。既存FEの文字表などもこの方式で同梱できます。
 
@@ -109,10 +116,12 @@ return profile
 |---|---|
 | `sample(frame, hash, state)` | 今回と前回の有効な状態を比較してイベントを記録 |
 | `reset(reason)` | ステート読み込みなどで比較元・イベントを破棄し、履歴区間を変更 |
-| `get()` | `timeline_id`・`events`・取得済みフレームなどを返す |
+| `get()` | `timeline_id`・`events`・取得済みフレーム、必要なら任意の`logs`を返す |
 | `last_frame`・`hash` | ブリッジが観測の間隔とROM変更を確認する値 |
 
 イベントには増加する`event_id`と`type`を付けます。`timeline_id`は巻き戻し・ROM変更・ステート読み込み・ゲーム内の大きな場面変更などで区切り、記録量を制限してください。状態が無効な区間をまたいで出来事を推測しないことが重要です。詳しい実装はサンプルの`lua/observer.lua`を参照してください。
+
+`get().logs`は、スナップショットでは`game_logs`としてそのままアプリへ届きます。本体はログ名や中身を解釈しません。FEの戦闘構造、ページの重複、フェーズ表示などの検知・保持はFEの観測エンジンが担当します。ログは履歴区間のリセット時にクリアし、件数に上限を設けてください。
 
 ## アプリ側のアダプター
 
@@ -128,10 +137,28 @@ return profile
 | `describe(state, language)` | 操作画面の状況ラベル |
 | `instructions` | ゲーム固有の注意・解釈上の制約 |
 | `playByPlay(events, state, options)` | 任意。ローカルで作る定型実況 |
+| `normalize(snapshot, {language})` | 任意。名前の翻訳や選択対象などをパック側で整える |
+| `localizeTone(key, language)` | 任意。共通の話し方にゲーム固有の定型文・能力名などを組み合わせる |
+| `createRuntime()` | 任意。履歴区間ごとの、ゲーム固有の収集・解釈オブジェクトを作る |
 
 `selectCandidate`は選んだ要素の`event`と`receivedAt`を保持し、`priority`・`category`・`context`などを加えて返します。静かなときは`null`を返します。生成間隔・利用上限・停止・古い応答の破棄は本体が担当します。
 
-名前表などの補助モジュールは通常の相対`import`で同梱できます。共通の翻訳関数`t`と定型文関数`phrase`が必要なら、キャッシュ最上位に本体が生成する`host.mjs`から読み込めます。`app/adapter.js`なら`import { t, phrase } from '../host.mjs'`です。`host.mjs`と`package.json`はZIPに含めません。本体の他の内部ファイルへ直接依存すると、更新時の互換性を保ちにくくなります。
+`createRuntime()`の戻り値は、必要な次のメソッドを実装します。本体はゲームのイベント名やログ構造を知りません。
+
+| メソッド | 契約 |
+|---|---|
+| `observe(snapshot, events, {now, baseline})` | 今回の観測を受け取り、定型実況に加える派生イベントの配列を返す。`baseline`時は古い記録を再生しない |
+| `candidate(state, {now})` | 会話や山場などの候補を返す。通常の`selectCandidate`より先に選ぶ。なければ`null` |
+| `consume(candidate)` | 生成に渡した候補を処理済みにする |
+| `quiet(state, now)` | ゲーム固有の理由で発言を控える間は`true` |
+| `settled(state)` | 落ち着いたペースにする局面なら`true` |
+| `context(state)` | モデル入力の`game_context`へ渡すゲーム固有の補足 |
+
+ランタイムは起動時や履歴区間の変更時に作り直します。候補には必要に応じて`cooldownMs`（通常より短い間隔）、`urgent`（落ち着いた局面でも間隔を伸ばさない）、`skipFingerprint`（過去の確定イベント）、`allowRestatement`（台詞の翻訳など）を指定できます。FEのフェーズ推定・会話の収集・戦闘の向き・加入時の候補はFEパックの`app/runtime.js`が担当します。
+
+Claudeの役割は、定型実況で伝える結果を言い直すことより、直近の流れへの補足です。モデルには`recent_flow.before`／`after`（比較元と現在の`summarize`結果）、`recent_changes`、`recent_narration`（直近2分に実際に出した定型実況を最大6件）を渡します。単なる称賛や撃破の言い直しだけの返答は、代表的な表現について本体でも抑制します。意味を追加できなければ`speak=false`を返す指示にしておきます。字幕に出さなくても生成要求は利用回数に数えます。
+
+名前表などの補助モジュールは通常の相対`import`で同梱できます。公開ホストAPIは`import { localizedTone, phrase } from '#commentator/host'`で使えます。共通の口調・読み上げ設定と、任意のテンプレートを埋める関数を提供します。ゲーム固有の文面・能力名・翻訳表はパックへ入れます。ソースとZIPで同じimportが使え、本体の内部ファイルへの相対パスを書き換える必要はありません。`host.mjs`と`package.json`はZIPに含めません。
 
 ## 形式の制限と検証範囲
 

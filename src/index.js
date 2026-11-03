@@ -8,7 +8,7 @@ const port = Number(process.env.BIZHAWK_PORT ?? 8766);
 if (!Number.isInteger(port) || port < 1 || port > 65535) throw new Error('BIZHAWK_PORT must be 1–65535');
 const shared = new SharedClient(port);
 await shared.start();
-const server = new Server({ name: 'bizhawk-commentator', version: '0.3.0' }, {
+const server = new Server({ name: 'bizhawk-commentator', version: '0.4.0' }, {
   capabilities: { tools: {}, prompts: {} },
   instructions: commentaryInstructions,
 });
@@ -17,8 +17,8 @@ const emptyInput = { type: 'object', properties: {}, additionalProperties: false
 const annotations = { readOnlyHint: true, destructiveHint: false, idempotentHint: false, openWorldHint: false };
 server.setRequestHandler(ListToolsRequestSchema, async () => ({ tools: [
   { name: 'get_session_info', description: 'BizHawkとの接続状態と、接続時はROM・システム・利用可能な取得機能を返します。未接続でも呼べます。', inputSchema: emptyInput, annotations },
-  { name: 'get_game_context', description: '現在のゲーム画面をPNG画像として、同じLua処理内で取得したROM情報・フレーム番号と一緒に返します。対応ROMではRAM由来のHP・座標・章・ターン、最近の観測差分も含みます。未対応の版・未初期化の場面では画像だけに戻ります。ゲーム入力や一時停止はしません。', inputSchema: emptyInput, annotations },
-  { name: 'get_recent_events', description: 'Luaスクリプトが約15エミュレーションフレームごとに記録したHP・座標・章・ターンの差分を最大128件返します。セーブステート読込や巻戻しでは履歴を区切ります。攻撃者や敵の意図、サンプル間の一瞬の変化は特定しません。画像が必要ならget_game_contextを使ってください。', inputSchema: emptyInput, annotations },
+  { name: 'get_game_context', description: '現在のゲーム画面をPNG画像として、同じLua処理内で取得したROM情報・フレーム番号と一緒に返します。対応パックがある場合はゲーム固有の状態と最近の観測差分も含みます。未対応の版・未初期化の場面では画像だけに戻ります。ゲーム入力や一時停止はしません。', inputSchema: emptyInput, annotations },
+  { name: 'get_recent_events', description: 'ゲームパックの観測エンジンが記録した最近のイベントを返します。項目・制約・保持件数はパックによります。セーブステート読込や巻戻しでは履歴を区切ります。画像が必要ならget_game_contextを使ってください。', inputSchema: emptyInput, annotations },
 ] }));
 server.setRequestHandler(CallToolRequestSchema, async request => {
   try {

@@ -1,10 +1,6 @@
 -- Each game profile supplies id, matches(system, hash), and read(read_byte).
 local folder = (debug.getinfo(1,"S").source:sub(2):match("^(.*[/\\])")) or ""
 local profiles = dofile(folder .. "../game-packs.lua").profiles
-local builtin = dofile(folder .. "fe1.lua")
-local replaced = false
-for _, profile in ipairs(profiles) do if profile.id==builtin.id then replaced=true end end
-if not replaced then profiles[#profiles+1]=builtin end
 local registry = {}
 function registry.find(system, hash)
     for _, profile in ipairs(profiles) do

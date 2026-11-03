@@ -55,7 +55,7 @@ export const playerNames = Object.freeze({
   52: "セイバー",
   53: "ガトー"
 });
-// The game's enemy name table (person IDs 129-197), identical to `enemy_names` in lua/profiles/fe1.lua: read from the
+// The game's enemy name table (person IDs 129-197), identical to `enemy_names` in lua/fe1.lua: read from the
 // supported ROM (second pointer table at $DFA4, checked against the unit information window in play).
 export const enemyNames = Object.freeze({
   129: "ガザック",

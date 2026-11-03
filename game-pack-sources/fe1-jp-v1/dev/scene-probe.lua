@@ -5,14 +5,14 @@
 -- Output in captures/scene-probe/<session>/ :
 --   snap_<seq>_<frame>.bin  = CPU RAM 0x0000-0x07FF (2 KiB) + nametables (2 KiB)
 --   sram_<seq>_<frame>.bin  = save RAM 0x6A90-0x77FF (units, map, chapter/turn), every SRAM_EVERY snapshots;
---                             scripts/dev/verify-session.mjs replays these through the real profile
+--                             game-pack-sources/fe1-jp-v1/dev/verify-session.mjs replays these through the real profile
 local INTERVAL = 60          -- one snapshot about every second
 local SRAM_EVERY = 5         -- unit/map data about every 5 seconds
 local MAX_SECONDS = 3600     -- stop after one hour of wall-clock time
 local SRAM_START, SRAM_END = 0x6A90, 0x77FF
 
 local script_dir = (debug.getinfo(1, "S").source:sub(2):match("^(.*[/\\])")) or ""
-local root = script_dir .. "../../captures/scene-probe/"
+local root = script_dir .. "../../../captures/scene-probe/"
 local session = os.date("%Y%m%d-%H%M%S")
 local dir = root .. session .. "/"
 os.execute('mkdir "' .. (root:gsub("/", "\\")) .. '" 2>nul')

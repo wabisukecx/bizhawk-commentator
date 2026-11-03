@@ -16,7 +16,7 @@ function run(source) {
 }
 
 test('FE1 profile gates exact ROM identity and decodes HP and zero-based coordinates with validation', () => run(`
-  local profile=dofile(${JSON.stringify(folder + 'profiles/fe1.lua')})
+  local profile=dofile(${JSON.stringify(folder + '../game-pack-sources/fe1-jp-v1/lua/fe1.lua')})
   local registry=dofile(${JSON.stringify(folder + 'profiles/registry.lua')})
   assert(registry.find("NES","8600D1880EB311BAE0ECE197F6175228E38F6B69").id==profile.id)
   assert(registry.find("NES","other-rom")==nil)
@@ -65,7 +65,7 @@ test('FE1 profile gates exact ROM identity and decodes HP and zero-based coordin
 `));
 
 test('history bounds sampled changes and resets on savestate, ROM, rewind, chapter and unavailable state', () => run(`
-  local history=dofile(${JSON.stringify(folder + 'observations.lua')}).new("test-session")
+  local history=dofile(${JSON.stringify(folder + 'observations.lua')}).new("test-session","fe1-map-v2")
   local function state(hp,x,turn,chapter)
     return { chapter=chapter or 1,turn=turn or 1,units={{key="player:0",character_id=1,name="マルス",side="player",hp=hp,x=x,y=6}} }
   end
@@ -98,7 +98,7 @@ test('history bounds sampled changes and resets on savestate, ROM, rewind, chapt
 
 test('unknown observation engines do not interpret game-specific state', () => run(`
   local engines=dofile(${JSON.stringify(folder + 'observations.lua')})
-  assert(engines.supports("tactical-map-v1"))
+  assert(engines.supports("fe1-map-v2"))
   assert(not engines.supports("unregistered"))
   local empty=engines.new("unknown-session","unregistered")
   empty:sample(100,"ROM",{units={{hp=18}}})

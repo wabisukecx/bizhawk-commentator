@@ -16,7 +16,7 @@ const catalog = {
   waitingBizHawk: { ja: 'BizHawkの接続を待っています。', en: 'Waiting for BizHawk to connect.' },
   disconnectedStop: { ja: '接続が切れたため停止しました。接続を確認して、もう一度開始してください。', en: 'Stopped because the connection was lost. Check the connection and start again.' },
   checkBizHawk: { ja: 'BizHawkへの接続を確認してください。', en: 'Please check the connection to BizHawk.' },
-  waitingMap: { ja: 'RAMを読み取れるマップ画面を待っています。', en: 'Waiting for a map screen whose RAM can be read.' },
+  waitingMap: { ja: '観測可能なゲーム状態を待っています。', en: 'Waiting for an observable game state.' },
   unsupportedGame: { ja: 'このゲームの自動コメントはまだ対応していません。', en: 'Automatic commentary is not supported for this game yet.' },
   waitingChange: { ja: '見守り中。ここからの新しい変化を待っています。', en: 'Watching. Waiting for new changes from here.' },
   hourlyLimit: { ja: 'このアプリの1時間あたりの回数上限に達しました。時間を置いて再開してください。', en: 'Reached this app\'s hourly limit. Wait a while and start again.' },
@@ -44,7 +44,6 @@ const catalog = {
   modelNotConfirmed: { ja: '{label}の利用を応答情報から確認できなかったため停止しました。', en: 'Stopped because use of {label} could not be confirmed from the response.' },
   badModel: { ja: 'AIモデルを選び直してください。', en: 'Please choose the AI model again.' },
   badTone: { ja: '口調を選び直してください。', en: 'Please choose the tone again.' },
-  chapterTurn: { ja: '第{chapter}章・ターン{turn}', en: 'Chapter {chapter}, Turn {turn}' },
 };
 
 export function t(key, vars = {}, language = current) {

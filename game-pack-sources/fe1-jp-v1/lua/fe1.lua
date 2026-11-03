@@ -3,7 +3,7 @@
 -- include/structs/unit.asm and code/home/unit.asm. No reference ASM is bundled.
 local folder = (debug.getinfo(1, "S").source:sub(2):match("^(.*[/\\])")) or ""
 local text = dofile(folder .. "fe1-text.lua")
-local profile = { id = "fe1-jp-v1", observation_kind = "tactical-map-v1" }
+local profile = { id = "fe1-jp-v1", observation_kind = "fe1-map-v2" }
 local hashes = { ["8600D1880EB311BAE0ECE197F6175228E38F6B69"] = true }
 -- PID-indexed name table $DE2B verified in the supported ROM.
 local names = {
@@ -142,6 +142,19 @@ function profile.matches(system, hash)
 end
 
 function profile.read(read, read_nametable)
+    -- Screen tile access is NES/FE1-specific. The host supplies only generic read-only memory functions.
+    if type(read_nametable)=="table" then
+        local memory=read_nametable
+        read_nametable=function()
+            local domain,base="PPU Bus",0x2000
+            for _,name in ipairs(memory.domains()) do if name=="CIRAM (nametables)" then domain=name; base=0 end end
+            local raw=memory.read_bytes(base,0x800,domain)
+            if not raw then return nil end
+            local second,first={},{}
+            for index=1,960 do second[index]=raw[0x400+index]; first[index]=raw[index] end
+            return second,first
+        end
+    end
     -- Both nametables, read once per sample: NT1 holds windows and dialogue, NT0 the turn banner.
     local nt, nt0
     if read_nametable then
@@ -217,7 +230,7 @@ function profile.read(read, read_nametable)
         map={width=max_x+1,height=max_y+1}, coordinate_system="zero_based_map_tiles",
         state_scope="loaded_map_data_may_persist_in_dialogs_or_menus",
         phase=nil, selected_unit=nil, units=units, rejected_records=rejected,
-        -- Raw scene hints found by recording one play session (scripts/dev/scene-probe.lua):
+        -- Raw scene hints found by recording one play session (dev/scene-probe.lua):
         -- $0026 was non-zero while a unit menu was open, and $0306 held a valid class ID (1-24)
         -- only during battle animations. Heuristics from a single session; not verified.
         -- Dialogue text decoded from the second nametable (nil when no speech window is showing).

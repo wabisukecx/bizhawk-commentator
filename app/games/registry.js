@@ -1,11 +1,10 @@
-import { fe1 } from './fe1.js';
 import { loadGameAdapters } from '../../src/game-packs.js';
 
 /**
  * A game adapter owns its state validation, candidate priorities, context
  * summary, stale-response fingerprint, display label and commentary hints.
  * The watcher owns only polling, lifecycle, timing, quotas and subtitles.
- * Built-in adapters and installed ZIP packs register explicitly. No ROM downloading or automatic mapping.
+ * Only installed ZIP packs register game adapters. The host has no built-in game.
  */
 export function createGameRegistry(adapters) {
   const entries = new Map();
@@ -24,5 +23,5 @@ export function createGameRegistry(adapters) {
 }
 
 const installed = await loadGameAdapters();
-const games = createGameRegistry([...(!installed.some(adapter => adapter.id === fe1.id) ? [fe1] : []), ...installed]);
+const games = createGameRegistry(installed);
 export const getGameAdapter = state => games.resolve(state);

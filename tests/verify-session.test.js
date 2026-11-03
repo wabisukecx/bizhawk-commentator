@@ -5,7 +5,7 @@ import os from 'node:os';
 import path from 'node:path';
 import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
-import { analyze } from '../scripts/dev/verify-session.mjs';
+import { analyze } from '../game-pack-sources/fe1-jp-v1/dev/verify-session.mjs';
 
 const SRAM_START = 0x6A90;
 const sramSize = 3584;
@@ -99,7 +99,7 @@ test('missing snapshot pairs and truncated dumps are errors, not successful cove
 test('the verification CLI exports JSON including coverage and rejects a missing directory clearly', t => {
   const dir = writeSession([[1, sramWith([{ pid: 1, jid: 21 }])]]);
   t.after(() => fs.rmSync(dir, { recursive: true, force: true }));
-  const script = fileURLToPath(new URL('../scripts/dev/verify-session.mjs', import.meta.url));
+  const script = fileURLToPath(new URL('../game-pack-sources/fe1-jp-v1/dev/verify-session.mjs', import.meta.url));
   const result = spawnSync(process.execPath, [script, dir, '--json'], { encoding: 'utf8' });
   assert.equal(result.status, 0, result.stderr);
   assert.deepEqual(JSON.parse(result.stdout).coverage.decodedChapters, [3]);

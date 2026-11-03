@@ -50,7 +50,8 @@ test('concurrent MCP processes share one bridge, survive owner exit, return PNGs
   socket.on('error', error => { peerError = error; });
   const info = {
     frame: 123, frame_after_capture: 123, rom_name: 'テスト', rom_hash: 'test-hash', system: 'NES',
-    game_state: { profile_id: 'fe1-jp-v1', units: [{ key: 'player:0', hp: 18, x: 25, y: 6 }] },
+    game_state: { profile_id: 'transport-fixture', phase: 'custom-turn', units: [{ key: 'entity:0', hp: 18, x: 25, y: 6 }] },
+    game_logs: { custom: [{ id: 1, value: 'record' }] },
     profile_status: 'supported', recent_observations: { events: {}, timeline_id: 'test:1' },
   };
   socket.on('data', async chunk => {
@@ -83,7 +84,8 @@ test('concurrent MCP processes share one bridge, survive owner exit, return PNGs
   assert.equal(JSON.parse(result.content[0].text).frame, 123);
   const metadata = JSON.parse(result.content[0].text);
   assert.equal(metadata.game_state.units[0].hp, 18);
-  assert.equal(metadata.game_state.phase, null);
+  assert.equal(metadata.game_state.phase, 'custom-turn', 'the host must not overwrite game-specific state');
+  assert.deepEqual(metadata.game_logs, info.game_logs);
   assert.deepEqual(metadata.recent_observations.events, []);
   assert.ok(!metadata.limitations.includes('image_only'));
   assert.equal(result.content[1].type, 'image');

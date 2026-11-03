@@ -3,8 +3,8 @@ import assert from 'node:assert/strict';
 import { createRequire } from 'node:module';
 import { fileURLToPath } from 'node:url';
 import { Watcher } from '../app/watcher.js';
-import { playByPlay } from '../app/games/fe1-play.js';
-import { tones, localizedTone } from '../app/tones.js';
+import { playByPlay } from '../game-pack-sources/fe1-jp-v1/app/fe1-play.js';
+import { tones, localizedTone } from '../game-pack-sources/fe1-jp-v1/app/tone.js';
 const require = createRequire(import.meta.url);
 const { lua, lauxlib, lualib, to_luastring, to_jsstring } = require('fengari');
 const folder = fileURLToPath(new URL('../lua/', import.meta.url)).replaceAll('\\', '/');
@@ -20,7 +20,7 @@ test('Lua profile reads the fight struct: attacker first, results, and level-up 
   lualib.luaL_openlibs(state);
   const fightTable = Object.entries(mem).map(([k, v]) => `[${k}]=${v}`).join(',');
   const source = `
-    local profile = dofile(${JSON.stringify(folder + 'profiles/fe1.lua')})
+    local profile = dofile(${JSON.stringify(folder + '../game-pack-sources/fe1-jp-v1/lua/fe1.lua')})
     local mem = { [0x7674]=1,[0x7675]=1,[0x7676]=20,[0x7677]=31, [0x6a90]=1,[0x6a91]=21,[0x6a92]=1,[0x6a93]=18,[0x6a94]=18,[0x6aa0]=6,[0x6aa1]=25 }
     local fight = { ${fightTable} }
     local function read(addr) return mem[addr] or 0 end
@@ -136,7 +136,7 @@ test('Jagen defeating an enemy absent from the roster uses its name in narration
       assert.match(text, /Jagen takes down Garuda soldier!/);
       assert.doesNotMatch(text, /Pirate|かいぞく|ガルダへい/);
     }
-    assert.equal(watcher.highlightReady.context.facts.defeated, language === 'ja' ? 'ガルダへい' : 'Garuda soldier');
+    assert.equal(watcher.runtime.highlightReady.context.facts.defeated, language === 'ja' ? 'ガルダへい' : 'Garuda soldier');
     assert.equal(logged.defender.name, undefined, 'an old bridge log need not be mutated or reread');
   }
 });

@@ -3,10 +3,10 @@ import assert from 'node:assert/strict';
 import { createRequire } from 'node:module';
 import { fileURLToPath } from 'node:url';
 import { Watcher } from '../app/watcher.js';
-import { playByPlay, analyzeBattle } from '../app/games/fe1-play.js';
-import { battleHighlight } from '../app/games/fe1.js';
-import { localizedTone } from '../app/tones.js';
-import { localizeSnapshot } from '../app/games/fe1-i18n.js';
+import { playByPlay, analyzeBattle } from '../game-pack-sources/fe1-jp-v1/app/fe1-play.js';
+import { battleHighlight } from '../game-pack-sources/fe1-jp-v1/app/fe1.js';
+import { localizedTone } from '../game-pack-sources/fe1-jp-v1/app/tone.js';
+import { localizeSnapshot } from '../game-pack-sources/fe1-jp-v1/app/fe1-i18n.js';
 const require = createRequire(import.meta.url);
 const { lua, lauxlib, lualib, to_luastring, to_jsstring } = require('fengari');
 const folder = fileURLToPath(new URL('../lua/', import.meta.url)).replaceAll('\\', '/');
@@ -63,14 +63,14 @@ test('the watcher narrates a logged heal once and does not call it an attack', a
   now = 20000; watcher.maybePlay();
   assert.equal(watcher.history.length, 1);
   assert.equal(watcher.history[0].text, 'リフがオグマを回復。HPは14から20になりました。');
-  assert.equal(watcher.highlightReady, null);
+  assert.equal(watcher.runtime.highlightReady, null);
 });
 
 test('the Lua profile reports the item used and whether it is an attack item (staffs are not)', () => {
   const state2 = lauxlib.luaL_newstate();
   lualib.luaL_openlibs(state2);
   const source = `
-    local profile = dofile(${JSON.stringify(folder + 'profiles/fe1.lua')})
+    local profile = dofile(${JSON.stringify(folder + '../game-pack-sources/fe1-jp-v1/lua/fe1.lua')})
     local mem = { [0x7674]=1,[0x7675]=1,[0x7676]=20,[0x7677]=31, [0x6a90]=1,[0x6a91]=21,[0x6a92]=1,[0x6a93]=18,[0x6a94]=18,[0x6aa0]=6,[0x6aa1]=25,
       [0x304]=9,[0x305]=14,[0x306]=19,[0x307]=6,[0x308]=1,[0x309]=2,[0x30A]=16,[0x30B]=14,[0x30C]=16,[0x30D]=20,
       [0x320]=53,[0x321]=1, [0x334]=16,[0x335]=20,

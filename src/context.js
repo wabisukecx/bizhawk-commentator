@@ -18,10 +18,10 @@ HP・座標・EXP・フレーム番号は判断の裏付けに使い、頼まれ
 画像は取得時点の静止画です。取得後の進行を決めつけないでください。静止画であることの定型的な注意書きは毎回付けず、時点の違いが回答に影響するときに説明してください。
 game_stateがある場合はRAMから取得したHP・座標などを画像の読取りより優先してください。
 RAMのマップ情報は会話やメニュー中にも残るため、画像と照合して現在の場面を判断してください。
-recent_observationsはサンプリング間の差分です。攻撃者、移動経路、正確な発生フレームは分かりません。
+recent_observationsはゲームパックの観測結果です。取得項目と制約に従って解釈し、記録されていない出来事や因果関係を補わないでください。
 observer_session_idやtimeline_idが変わったら、過去の履歴と混ぜないでください。このMCPサーバー自体は音声を出力しません。自動字幕アプリはブラウザの音声合成で読み上げます。
 「なぜその敵が狙ったか」は画像だけでは断定できません。
-口調の例（実際の観測が裏付ける場合だけ）:「カイン、ほかの味方から少し離れたね。隣のとうぞくもHPが減っているね。」`;
+ゲーム固有の名前や数値は、取得したデータにあるものだけを使ってください。`;
 
 export function normalizeObservations(value) {
   if (!value) return null;
@@ -38,15 +38,12 @@ function buildMetadata(snapshot, requestedAt) {
     requested_at: requestedAt,
     received_at: new Date().toISOString(),
     ...snapshot,
-    game_state: snapshot.game_state ? { ...snapshot.game_state, phase: null, selected_unit: null } : null,
+    game_state: snapshot.game_state ?? null,
     profile_status: snapshot.profile_status ?? 'bridge_update_required',
     recent_observations: normalizeObservations(snapshot.recent_observations),
-    // Lua encodes an empty list as {}.
-    dialogue_log: Array.isArray(snapshot.dialogue_log) ? snapshot.dialogue_log : [],
-    battle_log: Array.isArray(snapshot.battle_log) ? snapshot.battle_log : [],
-    phase_log: Array.isArray(snapshot.phase_log) ? snapshot.phase_log : [],
+    game_logs: snapshot.game_logs ?? {},
     limitations: snapshot.game_state
-      ? ['sampled_event_history', 'phase_and_selected_unit_unverified', 'map_ram_may_persist_in_menus', 'no_enemy_intent']
+      ? ['sampled_event_history', 'game_profile_interpretation']
       : ['image_only', 'no_validated_state_for_current_scene'],
   };
 }

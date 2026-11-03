@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { Watcher } from '../app/watcher.js';
 import { createRequire } from 'node:module';
 import { fileURLToPath } from 'node:url';
-import { orientBattle } from '../app/games/fe1.js';
+import { orientBattle } from '../game-pack-sources/fe1-jp-v1/app/fe1.js';
 const require = createRequire(import.meta.url);
 const { lua, lauxlib, lualib, to_luastring, to_jsstring } = require('fengari');
 const folder = fileURLToPath(new URL('../lua/', import.meta.url)).replaceAll('\\', '/');
@@ -62,8 +62,8 @@ test('the watcher says who attacked from the phase: enemy attacks name the enemy
   now += 30000; watcher.maybePlay();
   const lines = watcher.history.slice(-1).map(item => item.text);
   assert.ok(lines.length === 1);
-  assert.equal(watcher.phaseAt(350), 'enemy', 'a fight before the turn change is still the enemy phase');
-  assert.equal(watcher.phaseAt(450), 'player', 'one after it is ours');
+  assert.equal(watcher.runtime.phaseAt(350), 'enemy', 'a fight before the turn change is still the enemy phase');
+  assert.equal(watcher.runtime.phaseAt(450), 'player', 'one after it is ours');
 });
 
 // Real captures of the turn banner: a small window reading COMPUTER (second nametable, as the enemy phase
@@ -93,7 +93,7 @@ function banner(first, second) {
   const state = lauxlib.luaL_newstate();
   lualib.luaL_openlibs(state);
   const status = lauxlib.luaL_dostring(state, to_luastring(`
-    local text = dofile(${JSON.stringify(folder + 'profiles/fe1-text.lua')})
+    local text = dofile(${JSON.stringify(folder + '../game-pack-sources/fe1-jp-v1/lua/fe1-text.lua')})
     return tostring(text.phase_banner({ ${first.join(',')} }, { ${second.join(',')} }))
   `));
   const out = to_jsstring(lua.lua_tostring(state, -1));
@@ -115,7 +115,7 @@ test('the Lua profile exposes the banner and the bridge-facing state still decod
   lualib.luaL_openlibs(state);
   const second = nametable(computerRows), first = new Array(960).fill(0x5e);
   const status = lauxlib.luaL_dostring(state, to_luastring(`
-    local profile = dofile(${JSON.stringify(folder + 'profiles/fe1.lua')})
+    local profile = dofile(${JSON.stringify(folder + '../game-pack-sources/fe1-jp-v1/lua/fe1.lua')})
     local mem = { [0x7674]=1,[0x7675]=2,[0x7676]=20,[0x7677]=31, [0x6a90]=1,[0x6a91]=21,[0x6a92]=1,[0x6a93]=18,[0x6a94]=18,[0x6aa0]=6,[0x6aa1]=25 }
     local nt1, nt0 = { ${second.join(',')} }, { ${first.join(',')} }
     local state = profile.read(function(addr) return mem[addr] or 0 end, function() return nt1, nt0 end)
@@ -139,8 +139,8 @@ test('banner sightings logged by the bridge decide the phase for fights, before 
   assert.match(watcher.history.at(-1).text, /^グルニアへい(が|の攻撃が)マジ/, watcher.history.at(-1).text);
   // PLAYER appears at frame 300: later fights are ours again.
   now += 3000; watcher.accept(poll([{ id: 1, phase: 'enemy', frame: 100 }, { id: 2, phase: 'player', frame: 300 }], [fight(1, 140), fight(2, 340)]));
-  assert.equal(watcher.phaseAt(140), 'enemy');
-  assert.equal(watcher.phaseAt(340), 'player');
+  assert.equal(watcher.runtime.phaseAt(140), 'enemy');
+  assert.equal(watcher.runtime.phaseAt(340), 'player');
   now += 30000; watcher.maybePlay();
   assert.match(watcher.history.at(-1).text, /^マジ(が|の攻撃が)グルニアへい/, watcher.history.at(-1).text);
 });

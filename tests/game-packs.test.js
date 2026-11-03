@@ -6,9 +6,9 @@ import os from 'node:os';
 import { fileURLToPath } from 'node:url';
 import { createRequire } from 'node:module';
 import { zipSync, strToU8 } from 'fflate';
-import { readGamePack, buildGamePack, exportFe1Pack, prepareGamePacks, loadGameAdapters } from '../src/game-packs.js';
+import { readGamePack, buildGamePack, buildSourcePacks, prepareGamePacks, loadGameAdapters } from '../src/game-packs.js';
 import { createGameRegistry } from '../app/games/registry.js';
-import { fe1 } from '../app/games/fe1.js';
+import { fe1 } from '../game-pack-sources/fe1-jp-v1/app/fe1.js';
 import { Watcher } from '../app/watcher.js';
 const { lua, lauxlib, lualib, to_luastring, to_jsstring } = createRequire(import.meta.url)('fengari');
 const root = fileURLToPath(new URL('../', import.meta.url));
@@ -21,6 +21,20 @@ async function fixture(t) {
   await fs.mkdir(packs);
   return { directory: packs, cacheDirectory: path.join(directory, 'cache'), indexFile: path.join(directory, 'index.lua') };
 }
+
+test('development sources build into the runtime folder and ZIP-only installations do not require sources', async t => {
+  const options = await fixture(t);
+  const sources = path.join(path.dirname(options.directory), 'sources');
+  await fs.cp(path.join(root, 'examples/game-pack'), path.join(sources, 'example'), { recursive: true });
+  const outputs = await buildSourcePacks(sources, options.directory);
+  assert.deepEqual(outputs, [path.join(options.directory, 'example-hp-v1.zip')]);
+  assert.deepEqual(await fs.readdir(sources), ['example']);
+  const zip = await fs.readFile(outputs[0]);
+  assert.deepEqual(await buildSourcePacks(path.join(sources, 'not-included'), options.directory), []);
+  assert.deepEqual(await fs.readFile(outputs[0]), zip, 'missing sources must not change the runtime ZIP');
+  const [adapter] = await loadGameAdapters(options);
+  assert.equal(adapter.id, 'example-hp-v1');
+});
 
 function runLua(indexFile, source) {
   const state = lauxlib.luaL_newstate();
@@ -45,6 +59,8 @@ test('a ZIP supplies a new scalar game from Lua capture and custom observations 
   const filename = path.join(options.directory, 'example.zip');
   await buildGamePack(path.join(root, 'examples/game-pack'), filename);
   const { files, manifest } = readGamePack(await fs.readFile(filename));
+  files['lua/profile.lua'] = strToU8(new TextDecoder().decode(files['lua/profile.lua']).replace('return {profile_id=profile.id,', 'return {battle={unrelated=true}, profile_id=profile.id,'));
+  files['lua/observer.lua'] = strToU8(new TextDecoder().decode(files['lua/observer.lua']).replace('return {observer_session_id=session,', 'return {logs={arbitrary={{id=1,text="custom log"}}}, observer_session_id=session,'));
   await fs.writeFile(filename, zipSync({ ...files, 'pack.json': strToU8(JSON.stringify({ ...manifest, memoryDomain: 'Fixture RAM' })) }));
   const adapters = await loadGameAdapters(options);
   assert.equal(adapters[0].id, 'example-hp-v1');
@@ -72,12 +88,15 @@ test('a ZIP supplies a new scalar game from Lua capture and custom observations 
     local snapshot=json.decode(sent[3]:sub(8)).result
     assert(snapshot.game_state.profile_id=="example-hp-v1" and snapshot.game_state.hp==7)
     assert(snapshot.game_state.units==nil, "must not inherit FE state")
+    assert(snapshot.game_state.battle.unrelated==true, "the bridge must not interpret an arbitrary battle field")
+    assert(snapshot.game_logs.arbitrary[1].text=="custom log")
+    assert(snapshot.battle_log==nil and snapshot.phase_log==nil and snapshot.dialogue_log==nil)
     assert(snapshot.recent_observations.events[1].field=="hp")
     assert(snapshot.recent_observations.events[1].from==10 and snapshot.recent_observations.events[1].to==7)
     local registry=dofile(${JSON.stringify(luaFolder + 'profiles/registry.lua')})
     assert(registry.find("NES",string.rep("1",40))==nil)
     assert(registry.find("SNES",string.rep("0",40))==nil)
-    assert(registry.find("NES","8600D1880EB311BAE0ECE197F6175228E38F6B69").id=="fe1-jp-v1")
+    assert(registry.find("NES","8600D1880EB311BAE0ECE197F6175228E38F6B69")==nil, "no built-in FE fallback")
   `);
   let now = 0, generation;
   const watcher = new Watcher({ language: 'en', tone: 'announcer', clock: () => now, resolveGame: createGameRegistry(adapters).resolve,
@@ -97,14 +116,93 @@ test('a ZIP supplies a new scalar game from Lua capture and custom observations 
   assert.equal(watcher.history.at(-1).text, 'The HP dropped.');
 });
 
-test('the existing FE1 implementation exports as one ZIP and retains its adapter and Lua helper behavior', async t => {
+test('with no ZIP installed, both the app and Lua bridge have no FE reader or commentary fallback', async t => {
+  const options = await fixture(t);
+  const adapters = await loadGameAdapters(options);
+  assert.deepEqual(adapters, []);
+  const registry = createGameRegistry(adapters);
+  assert.equal(registry.resolve({ profile_id: fe1.id, units: [] }), null);
+  let calls = 0;
+  const watcher = new Watcher({ resolveGame: registry.resolve, includedOnlyConfirmed: true,
+    authenticate: async () => ({ plan: 'pro' }), generate: async () => { calls++; } });
+  t.after(() => watcher.stop());
+  await watcher.start();
+  watcher.accept({ game_state: { profile_id: fe1.id, units: [] }, recent_observations: { timeline_id: 'none', events: [{ event_id: 1, type: 'unit_joined' }] },
+    battle_log: [{ id: 1, unrelated: true }] });
+  await watcher.maybeGenerate();
+  assert.equal(watcher.runtime, null);
+  assert.equal(calls, 0);
+  runLua(options.indexFile, `
+    assert(dofile(${JSON.stringify(luaFolder + 'profiles/registry.lua')}).find("NES","8600D1880EB311BAE0ECE197F6175228E38F6B69")==nil)
+    assert(not dofile(${JSON.stringify(luaFolder + 'observations.lua')}).supports("fe1-map-v2"))
+  `);
+});
+
+test('FE observation logs belong to its pack and are reset along with its timeline', async t => {
+  const options = await fixture(t);
+  await buildGamePack(path.join(root, 'game-pack-sources/fe1-jp-v1'), path.join(options.directory, 'fe1.zip'));
+  await prepareGamePacks(options);
+  runLua(options.indexFile, `
+    local engine=dofile(${JSON.stringify(luaFolder + 'game-packs.lua')}).engines["fe1-map-v2"]
+    local observer=engine.new("logs")
+    local state={chapter=2,turn=3,units={},dialogue={text="village"},phase_banner="player",
+      battle={attacker={pid=3,hp=20,hp_after=17,level=1},defender={pid=133,hp=18,hp_after=0,level=1},after={level=1},exp=5}}
+    observer:sample(100,"ROM",state)
+    assert(#observer:get().logs.battle==0, "a half-written fight is not logged")
+    observer:sample(115,"ROM",state)
+    observer:sample(130,"ROM",state)
+    local logs=observer:get().logs
+    assert(#logs.battle==1 and logs.battle[1].attacker.pid==3)
+    assert(#logs.dialogue==1 and #logs.phase==1)
+    observer:reset("savestate_loaded")
+    assert(#observer:get().logs.battle==0 and #observer:get().logs.dialogue==0 and #observer:get().logs.phase==0)
+  `);
+});
+
+test('a non-FE pack runtime owns derived events and model context without host schema assumptions', async t => {
+  let now = 0, payload;
+  const adapter = { id: 'score-only', title: 'Score', accepts: state => Number.isFinite(state.score),
+    summarize: state => ({ score: state.score }), fingerprint: state => String(state.score), describe: state => String(state.score), selectCandidate: () => null,
+    playByPlay: events => events.map(event => ({ text: `Score is ${event.value}.`, topicKey: String(event.event_id), priority: 2 })),
+    createRuntime() {
+      let ready = null;
+      return {
+        observe(snapshot, events, { now, baseline }) {
+          if (baseline) return [];
+          ready = { event: { type: 'score_milestone' }, receivedAt: now, category: 'score', priority: 2, context: { score: snapshot.game_state.score } };
+          return [{ type: 'score_report', event_id: 99, value: snapshot.game_state.score }];
+        },
+        candidate: () => ready, consume: () => { ready = null; }, context: state => ({ scoreboard: state.score }),
+      };
+    } };
+  const watcher = new Watcher({ language: 'en', tone: 'announcer', resolveGame: createGameRegistry([adapter]).resolve, clock: () => now, includedOnlyConfirmed: true,
+    authenticate: async () => ({ plan: 'pro' }), generate: async input => { payload = input; return { speak: false, comment: '' }; } });
+  t.after(() => watcher.stop());
+  await watcher.start();
+  const snapshot = score => ({ game_state: { profile_id: adapter.id, score }, recent_observations: { timeline_id: 'score:1', events: [] }, game_logs: { scoreboard: [] } });
+  watcher.accept(snapshot(0));
+  now = 2500; watcher.accept(snapshot(100)); watcher.maybePlay();
+  assert.equal(watcher.history[0].text, 'Score is 100.');
+  now = 5000; await watcher.maybeGenerate();
+  assert.deepEqual(payload.game_context, { scoreboard: 100 });
+  assert.equal(watcher.runtime.candidate(), null);
+});
+
+test('the standalone FE1 source pack builds as one ZIP and retains its adapter and Lua helper behavior', async t => {
   const options = await fixture(t);
   const filename = path.join(options.directory, 'fe1.zip');
-  await exportFe1Pack(filename);
+  await buildGamePack(path.join(root, 'game-pack-sources/fe1-jp-v1'), filename);
+  const repeat = path.join(path.dirname(options.directory), 'repeat.zip');
+  await buildGamePack(path.join(root, 'game-pack-sources/fe1-jp-v1'), repeat);
+  assert.deepEqual(await fs.readFile(filename), await fs.readFile(repeat), 'unchanged source produces the same pack and cache key');
   const pack = readGamePack(await fs.readFile(filename));
   assert.ok(pack.files['app/fe1-names.js']);
   assert.ok(pack.files['app/fe1-i18n.js']);
   assert.ok(pack.files['lua/fe1-text.lua']);
+  assert.ok(pack.files['app/runtime.js']);
+  assert.ok(pack.files['app/phrases.js']);
+  assert.ok(pack.files['lua/observer.lua']);
+  assert.equal(Object.keys(pack.files).some(name => name.startsWith('dev/')), false);
   const [adapter] = await loadGameAdapters(options);
   const state = { profile_id: fe1.id, chapter: 2, turn: 3, units: [{ key: 'player:0', character_id: 1, side: 'player', hp: 18, max_hp: 18, x: 2, y: 3 }] };
   assert.deepEqual(adapter.summarize(state), fe1.summarize(state));
@@ -156,8 +254,9 @@ test('updates use immutable caches, removal clears registration, and adapter con
   const options = await fixture(t);
   const filename = path.join(options.directory, 'example.zip');
   await buildGamePack(path.join(root, 'examples/game-pack'), filename);
-  const [[first], [concurrent]] = await Promise.all([prepareGamePacks(options), prepareGamePacks(options)]);
-  assert.equal(first.directory, concurrent.directory, 'simultaneous app/MCP startup can share the cache');
+  const concurrent = await Promise.all(Array.from({ length: 8 }, () => prepareGamePacks(options)));
+  const first = concurrent[0][0];
+  assert.ok(concurrent.every(packs => packs[0].directory === first.directory), 'simultaneous app/MCP startup can share the cache and index');
   const { files, manifest } = readGamePack(await fs.readFile(filename));
   await fs.writeFile(filename, zipSync({ ...files, 'pack.json': strToU8(JSON.stringify({ ...manifest, version: '1.0.1' })) }));
   const [second] = await prepareGamePacks(options);

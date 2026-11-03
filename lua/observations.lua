@@ -1,11 +1,9 @@
 -- Explicit registration; the bridge does not interpret game-specific fields.
 local folder=(debug.getinfo(1,"S").source:sub(2):match("^(.*[/\\])")) or ""
-local engines={ ["tactical-map-v1"]=dofile(folder .. "observers/tactical-map.lua") }
-for kind, engine in pairs(dofile(folder .. "game-packs.lua").engines) do engines[kind]=engine end
+local engines=dofile(folder .. "game-packs.lua").engines
 local module={}
 function module.supports(kind) return engines[kind]~=nil end
 function module.new(session,kind)
-    kind=kind or "tactical-map-v1"
     if engines[kind] then return engines[kind].new(session) end
     local empty={generation=1,events={},reset_reason="unsupported_profile"}
     function empty:reset(reason)

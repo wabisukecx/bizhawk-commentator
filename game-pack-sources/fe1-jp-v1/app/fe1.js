@@ -6,7 +6,8 @@ import { playByPlay, analyzeBattle } from './fe1-play.js';
 import { selectCandidate } from './fe1-analysis.js';
 import { unitName, battleName } from './fe1-names.js';
 import { localizeSnapshot } from './fe1-i18n.js';
-import { t } from '../i18n.js';
+import { localizedTone } from './tone.js';
+import { Fe1Runtime } from './runtime.js';
 
 export function fingerprint(state, key) {
   if (!state) return '';
@@ -26,10 +27,10 @@ export function compactState(state) {
 
 export const gameInstructions = `対象は初代ファイアーエムブレムです。
 context.focusが今回の話題、context.factsが根拠です。位置やHPを読み上げるだけでなく、この変化で生まれた選択肢や局面の意味を一つだけ話してください。意味を裏付けられなければspeak=false。
-字幕はくだけた日本語で1〜2文。数値の報告や「確認してから決めたい」といった定型の助言で文字数を埋めません。未検証事項は断定を避けるための内部制約であり、毎回の免責文にしません。
-今回は淡々とした報告より、少し盛り上がる観戦コメントを求められています。「位置の報告→選択肢の説明」の型を崩し、見どころへの短い反応を先に出してください。合流には「おっ、ここでゴードンも来た！」、有利な消耗には「海賊のほうが大きく削れている！」、大きなHP減少には「ジェイガン、かなり削られた！」のように喜び・緊張の強弱を言葉にします。単なる小移動を大事件扱いせず、連続した歓声や感嘆符の連発も避けます。キャラクターの心情、架空の活躍、勝利は創作しません。
-「交代も考えやすくなった」「誰に経験を回すかが考えどころ」で毎回締めません。already_saidを見て、言葉だけでなく着眼点も変えます。変化そのものが見どころなら、短い反応で終えてよいです。新しい意味がなければ黙ります。
-話し方の例（根拠が一致する場合だけ）: 合流「おっ、ゴードンも追いついた！ アベルのそばに弓役が加わったね。」 消耗の釣り合い「海賊のほうが大きく削れている！ こちらの消耗を小さく抑えた、いい流れだね。」 低HP「ジェイガン、かなり削られたね。ここは残りの体力が気になるところ。」 毎回この文型に寄せず、実際の根拠を優先してください。
+字幕は選択された口調に従って1〜2文。数値の報告や「確認してから決めたい」といった定型の助言で文字数を埋めません。未検証事項は断定を避けるための内部制約であり、毎回の免責文にしません。
+定型実況が戦闘・回復・成長・加入などの結果を伝えます。あなたは直近の流れを読む解説として、recent_flowの前後比較やrecent_changesから、消耗の釣り合い、残る味方の消耗、配置の変化などを一つだけ補足してください。撃破の言い直しや一般的な称賛だけでは話しません。キャラクターの心情、架空の活躍、勝利は創作しません。
+「交代も考えやすくなった」「誰に経験を回すかが考えどころ」で毎回締めません。already_saidとrecent_narrationを見て、言葉だけでなく着眼点も変えます。新しい意味がなければspeak=falseにしてください。
+解説の例（根拠が一致する場合だけ。語尾は選択された口調に合わせる）: 「敵の消耗が大きい一方、味方のHPはよく残っています。」「敵数は減っていますが、サジの消耗はまだ残っています。」 観測範囲を超えた安全・攻撃可能範囲・敵の狙いの断定や、無理な攻略助言にはつなげません。
 味方にnameがあればリフ、オグマなどの個人名で呼び、「そうりょ」「ようへい」だけで済ませません。名前はgame.unitsとcontext.factsから取り、未取得の名前は推測しません。
 合流で動いた人物はcontext.facts.arrivingです。joinedは合流相手であり、主語を入れ替えて「相手が来た」と言ってはいけません。誰が移動したかを区別できない文にするなら「マルスとリフが並んだ」のように配置だけを述べます。
 合流は兵種・所持品に合う関係だけを話します。弓役や僧侶の合流を一律に前衛交代と言わず、杖の所持と使用可能を混同しません。命令口調で攻略を押し付けません。
@@ -135,7 +136,7 @@ export function recruitHighlight(event, state) {
   const unit = state?.units?.find(u => u.key === event.unit_key);
   return { key: `join:${event.character_id}`, context: {
     topic: 'recruit',
-    focus: `${name}が新しく仲間に加わった場面。仲間が増えた喜びを実況者として一言だけ話す。誰が何をしたか（会話や条件）は不明なので、加入の理由は推測しない。`,
+    focus: `${name}が新しく仲間に加わった場面。加入自体は定型実況が担当する。recent_flowと現在の配置・兵種から補足できる関係があれば一言解説し、加入の言い直しや喜びだけならspeak=false。誰が何をしたか（会話や条件）は不明なので、加入の理由は推測しない。`,
     facts: { name, class_name: unit?.class_name ?? event.class_name, level: event.level, hp: event.hp, max_hp: event.max_hp },
     limitations: '加入の事実だけが根拠。感情はキャラクターではなく実況者自身のもの。',
   } };
@@ -169,12 +170,12 @@ export function battleHighlight(entry, state) {
   return { key: `highlight:${entry.id}`, context: {
     topic: 'battle_highlight',
     focus: (down ? `${name(down)}が倒れた` : '') + (down && critBy ? '。' : '') + (critBy ? `${name(critBy)}の必殺の一撃が決まった` : '')
-      + '場面。結果の数字はすでに実況が伝えているので繰り返さず、この瞬間への実況者の反応を一言だけ話す。',
+      + '場面。結果自体は定型実況が担当するので繰り返さず、recent_flowやrecent_changesから直近の消耗・配置の流れへの補足を一つだけ解説する。一般的な称賛しか加えられない場合はspeak=false。',
     facts: { attacker: name(entry.attacker), defender: name(entry.defender),
       ...(down ? { defeated: name(down), defeated_is_ours: ours(down) } : {}),
       ...(critBy ? { critical_by: name(critBy), critical_by_is_ours: ours(critBy) } : {}),
       hp_before: { attacker: entry.attacker.hp, defender: entry.defender.hp }, hp_after: { attacker: entry.attacker.hp_after, defender: entry.defender.hp_after } },
-    limitations: '攻撃の順序は不明。HPと必殺の有無だけが根拠。感情はキャラクターではなく実況者自身のもの。',
+    limitations: 'この戦闘の結果と、recent_flow・recent_changesの観測事実だけが根拠。観測範囲外の攻撃経緯や敵の意図を推測せず、別の出来事同士を因果関係で結ばない。',
   } };
 }
 
@@ -192,7 +193,14 @@ export function isSettled(state, { peakEnemies = 0 } = {}) {
 export const fe1 = Object.freeze({
   id: 'fe1-jp-v1',
   title: 'ファイアーエムブレム 暗黒竜と光の剣',
-  stateSchema: 'tactical-map-v1',
+  stateSchema: 'fe1-map-v2',
+  createRuntime: () => new Fe1Runtime(fe1),
+  localizeTone: localizedTone,
+  normalize: (snapshot, { language }) => {
+    const normalized = language === 'en' ? localizeSnapshot(snapshot) : { ...snapshot, game_state: snapshot.game_state && { ...snapshot.game_state } };
+    if (normalized.game_state) normalized.game_state.selected_unit = selectedUnit(normalized.game_state);
+    return normalized;
+  },
   accepts: state => Array.isArray(state.units) && state.units.every(unit =>
     typeof unit.key === 'string' && ['player', 'enemy'].includes(unit.side) &&
     [unit.x, unit.y, unit.hp].every(Number.isFinite)),
@@ -210,7 +218,7 @@ export const fe1 = Object.freeze({
   fingerprint: state => fingerprint(state),
   summarize: state => ({ title: 'ファイアーエムブレム 暗黒竜と光の剣', ...compactState(state) }),
   titleEn: 'Fire Emblem: Shadow Dragon and the Blade of Light',
-  describe: (state, language = 'ja') => t('chapterTurn', { chapter: state.chapter, turn: state.turn }, language),
+  describe: (state, language = 'ja') => language === 'en' ? `Chapter ${state.chapter}, Turn ${state.turn}` : `第${state.chapter}章・ターン${state.turn}`,
   localize: localizeSnapshot,
   baselineEvents: observed => observed.reset_reason === 'chapter_changed'
     ? observed.events.filter(event => event.type === 'chapter_changed') : [],
@@ -218,3 +226,5 @@ export const fe1 = Object.freeze({
   reviewComment,
 });
 
+
+export default fe1;

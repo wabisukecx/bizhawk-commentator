@@ -6,6 +6,20 @@
 - Add coverage summaries and JSON output for recorded-session validation.
 - Prepare public documentation and exclude local analysis material from distribution.
 
+## 0.13.0
+
+- Make FE1 a standalone source/ZIP pack. Move its memory and text readers, names, English mappings, narration phrases, runtime interpretation and development tools under `game-pack-sources/fe1-jp-v1/`; keep `game-packs/` for runtime ZIPs. ZIP-only installations do not require the source folder.
+- Remove built-in game registration and all FE-specific phase, conversation, battle-log and recruitment handling from the host watcher and Lua bridge. No ZIP means no automatic FE interpretation.
+- Introduce pack API 2 with pack-owned observation engines/logs, runtime hooks, snapshot normalization and narration phrases; provide a public `#commentator/host` API.
+- Replace the FE-specific export command with generic `build`/`build-all`. Source packs build during installation and tests, but normal startup reads only ZIPs.
+- Update the shared service/Lua interface to 0.4.0. API 1 packs require migration and rebuilding.
+
+## 0.12.3
+
+- Separate fixed play-by-play from model analysis: Claude comments on the recent flow of losses and positioning, and stays silent when it can only repeat results or add generic praise.
+- Supply before/after summaries and recently delivered narration to the model, and offer local narration before starting a generation. Keep the selected speaking style.
+- Add conservative Japanese/English filters for result-only reactions and generic praise; dialogue explanations retain their own role.
+
 ## 0.12.2
 
 - Resolve enemy names in battle records as well as map units. Local narration and Claude highlights use the PID name tables even with older Lua logs or after the defeated enemy leaves the roster, in Japanese and English. Unknown IDs still fall back to their class.

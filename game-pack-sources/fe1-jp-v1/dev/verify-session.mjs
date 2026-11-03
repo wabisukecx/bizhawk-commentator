@@ -1,7 +1,7 @@
 // Development tool: replays a recorded scene-probe session through the real FE1 Lua profile and checks that the
 // decoded game state is self-consistent. Use it on recordings of later chapters, recruits and departures:
-//   node scripts/dev/verify-session.mjs [captures/scene-probe/<session>]   (default: the newest session)
-//   node scripts/dev/verify-session.mjs --all --json   (all local sessions, machine-readable reports)
+//   node game-pack-sources/fe1-jp-v1/dev/verify-session.mjs [captures/scene-probe/<session>]   (default: the newest session)
+//   node game-pack-sources/fe1-jp-v1/dev/verify-session.mjs --all --json   (all local sessions, machine-readable reports)
 // It needs sram_*.bin files (recorded by scene-probe.lua 0.9+). Exit code 1 means a finding that needs a look.
 import { createRequire } from 'node:module';
 import fs from 'node:fs';
@@ -9,9 +9,9 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const require = createRequire(import.meta.url);
-const root = fileURLToPath(new URL('../../', import.meta.url));
+const root = fileURLToPath(new URL('../../../', import.meta.url));
 const { lua, lauxlib, lualib, to_luastring, to_jsstring } = require(path.join(root, 'node_modules/fengari'));
-const luaFolder = path.join(root, 'lua').replaceAll('\\', '/') + '/';
+const luaFolder = fileURLToPath(new URL('../lua/', import.meta.url)).replaceAll('\\', '/');
 
 const SRAM_START = 0x6A90;
 const PLAYER_BASE = 0x6A90, PLAYER_SLOTS = 54, ENEMY_BASE = 0x7078, ENEMY_SLOTS = 20, RECORD = 27;
@@ -23,8 +23,8 @@ function createDecoder() {
   const state = lauxlib.luaL_newstate();
   lualib.luaL_openlibs(state);
   const ok = lauxlib.luaL_dostring(state, to_luastring(`
-    profile = dofile(${JSON.stringify(luaFolder + 'profiles/fe1.lua')})
-    json = dofile(${JSON.stringify(luaFolder + 'json.lua')})
+    profile = dofile(${JSON.stringify(luaFolder + 'fe1.lua')})
+    json = dofile(${JSON.stringify(path.join(root, 'lua/json.lua').replaceAll('\\', '/'))})
     function decode(values, nametable)
       local mem = load("return {" .. values .. "}")()
       local nt = nametable ~= "" and load("return {" .. nametable .. "}")() or nil
@@ -69,7 +69,7 @@ export function analyze(dir) {
   const report = { dir, snapshots: snaps.length, sramDumps: srams.length, findings: [], notes: [], chapters: [], rosterEvents: [], samples: 0, decoded: 0,
     coverage: { decodedChapters: [], playerZeroHpSamples: 0, playerDefeatTransitions: [] } };
   if (!srams.length) {
-    report.findings.push({ level: 'error', message: 'No sram_*.bin files: record with scripts/dev/scene-probe.lua 0.9 or later (start-bizhawk.ps1 -Probe).' });
+    report.findings.push({ level: 'error', message: 'No sram_*.bin files: record with dev/scene-probe.lua 0.9 or later (start-bizhawk.ps1 -LuaScript game-pack-sources/fe1-jp-v1/dev/bridge-with-probe.lua).' });
     return report;
   }
   const decode = createDecoder();
@@ -203,7 +203,7 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
     const args = process.argv.slice(2), all = args.includes('--all'), json = args.includes('--json');
     const paths = args.filter(arg => !arg.startsWith('--'));
     if (args.some(arg => arg.startsWith('--') && !['--all', '--json'].includes(arg)) || paths.length > 1 || all && paths.length) {
-      throw new Error('Usage: node scripts/dev/verify-session.mjs [session-directory] [--json] | --all [--json]');
+      throw new Error('Usage: node game-pack-sources/fe1-jp-v1/dev/verify-session.mjs [session-directory] [--json] | --all [--json]');
     }
     let dirs = paths;
     if (!dirs.length) {
