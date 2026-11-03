@@ -185,7 +185,7 @@ export async function buildGamePack(directory, output) {
   return output;
 }
 
-export async function buildSourcePacks(directory = path.join(root, 'game-pack-sources'), outputDirectory = path.join(root, 'game-packs')) {
+export async function buildSourcePacks(directory = path.join(root, 'ignore/game-pack-sources'), outputDirectory = path.join(root, 'game-packs')) {
   const outputs = [];
   let entries;
   try { entries = await readdir(directory, { withFileTypes: true }); }

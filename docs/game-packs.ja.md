@@ -2,7 +2,7 @@
 
 ゲームごとのROM識別・RAM読み取り・差分検出・実況ルール・名前表を、1個のZIPとして追加できます。本体のレジストリを編集する必要はありません。パックAPIの現行版は`2`です。本体には特定ゲームの内蔵アダプターや解析処理を持ちません。
 
-`app/`は監視・生成・字幕・音声と共通の話し方、`lua/`は接続と汎用の読み取りを担当します。FEのソース・定型実況文・文字表・戦闘や会話の解釈・開発ツールは、すべて`game-pack-sources/fe1-jp-v1/`にあります。
+`app/`は監視・生成・字幕・音声と共通の話し方、`lua/`は接続と汎用の読み取りを担当します。FE1の読み取り・定型実況文・文字表・戦闘や会話の解釈は、配布する`game-packs/fe1-jp-v1.zip`に含まれます。
 
 ## 導入・更新・削除
 
@@ -21,27 +21,9 @@ npm.cmd run game-pack -- list
 
 パックはLua／JavaScriptのコードを含みます。特にJavaScriptはアプリと同じ権限で実行されるため、信頼できる配布元のパックを使ってください。ZIPのパス・サイズ・形式の検証は、コードの安全性を保証するものではありません。
 
-## ソースからZIPを作る
-
-```powershell
-npm.cmd run game-pack -- build-all
-```
-
-`game-pack-sources/`直下の、`pack.json`があるソースフォルダをすべてビルドし、`game-packs/`へZIPを出力します。FEなら`game-pack-sources/fe1-jp-v1/`から`game-packs/fe1-jp-v1.zip`を作ります。ゲーム名を指定する特別な書き出し処理は本体にありません。配布用など、別の出力先へ個別にビルドする場合:
-
-```powershell
-npm.cmd run game-pack -- build game-pack-sources/fe1-jp-v1 runtime/game-packs/fe1-jp-v1.zip
-```
-
-`npm ci`と`npm test`もソースパックをビルドします。通常のアプリ起動はZIPだけを読みます。ZIPを外すと、そのゲームの解析と自動実況は無効になり、内蔵版へ戻ることはありません。キャッシュやソースフォルダを直接読み込むフォールバックもありません。ソースを残している場合、次のインストールやテストでZIPが再生成されることには注意してください。
-
-実行・配布にはZIPだけあればよく、`game-pack-sources/`は省略できます。ソースフォルダがない場合、インストール時のビルドは何もせず、既存ZIPをそのまま利用します。ソースの編集や開発テストをする場合だけ、このフォルダを用意します。
-
-旧API 1のZIPは再ビルドが必要です。API 2では、以前本体にあった戦闘・会話・フェーズの解釈もパックに移しています。版番号だけを書き換えず、観測エンジンと必要なランタイム処理をパック側に用意してください。FEのパック版番号は本体と独立して管理します。
-
 ## 新しいゲームの雛形
 
-`examples/game-pack/`は、HPとステージを扱う最小例です。アドレスとROMハッシュは架空で、市販ゲームの対応データではありません。FE用のユニット構造を使わず、専用の差分エンジンから実況までを実行できます。
+`tests/fixtures/game-pack/`は、HPとステージを扱う最小例です。アドレスとROMハッシュは架空で、市販ゲームの対応データではありません。FE用のユニット構造を使わず、専用の差分エンジンから実況までを実行できます。
 
 ```text
 pack.json               ROM識別、エントリーポイント、API版
@@ -55,7 +37,7 @@ app/names.js            名前や翻訳の表
 このフォルダを作業用にコピーし、ROMハッシュ、アドレス、検証条件、実況ルールを調べたゲームに合わせて変更します。ビルドは次の形式です。
 
 ```powershell
-npm.cmd run game-pack -- build examples/game-pack runtime/game-packs/example-hp-v1.zip
+npm.cmd run game-pack -- build tests/fixtures/game-pack runtime/game-packs/example-hp-v1.zip
 ```
 
 ZIPを手作業で作る場合も、`pack.json`を含むファイル群を最上位へ入れます。フォルダ自体を丸ごと包むと読み込めません。

@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { createGameRegistry, getGameAdapter } from '../app/games/registry.js';
-import { fe1 } from '../game-pack-sources/fe1-jp-v1/app/fe1.js';
+import { fe1 } from './helpers/fe1.js';
 import { getModel } from '../app/models.js';
 import { generateComment, parseModelComment } from '../app/claude.js';
 import { Watcher } from '../app/watcher.js';

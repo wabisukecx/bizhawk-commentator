@@ -3,11 +3,11 @@ import assert from 'node:assert/strict';
 import { Watcher } from '../app/watcher.js';
 import { createApp } from '../app/server.js';
 import { phrase, reviewTone } from '../app/tones.js';
-import { tones, localizedTone, english } from '../game-pack-sources/fe1-jp-v1/app/tone.js';
+import { tones, localizedTone, english } from './helpers/fe1.js';
 import { buildCommentaryInstructions } from '../app/prompts.js';
-import { romanize, englishName, localizeSnapshot, OFFICIAL } from '../game-pack-sources/fe1-jp-v1/app/fe1-i18n.js';
-import { mentionedUnits, reviewComment, dialogueContext } from '../game-pack-sources/fe1-jp-v1/app/fe1.js';
-import { playByPlay } from '../game-pack-sources/fe1-jp-v1/app/fe1-play.js';
+import { romanize, englishName, localizeSnapshot, OFFICIAL } from './helpers/fe1.js';
+import { mentionedUnits, reviewComment, dialogueContext } from './helpers/fe1.js';
+import { playByPlay } from './helpers/fe1.js';
 import { setLanguage, t } from '../app/i18n.js';
 
 test.afterEach(() => setLanguage('ja'));

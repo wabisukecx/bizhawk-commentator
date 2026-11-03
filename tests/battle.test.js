@@ -1,10 +1,11 @@
+import { luaPath } from './helpers/fe1.js';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { createRequire } from 'node:module';
 import { fileURLToPath } from 'node:url';
 import { Watcher } from '../app/watcher.js';
-import { playByPlay } from '../game-pack-sources/fe1-jp-v1/app/fe1-play.js';
-import { tones, localizedTone } from '../game-pack-sources/fe1-jp-v1/app/tone.js';
+import { playByPlay } from './helpers/fe1.js';
+import { tones, localizedTone } from './helpers/fe1.js';
 const require = createRequire(import.meta.url);
 const { lua, lauxlib, lualib, to_luastring, to_jsstring } = require('fengari');
 const folder = fileURLToPath(new URL('../lua/', import.meta.url)).replaceAll('\\', '/');
@@ -20,7 +21,7 @@ test('Lua profile reads the fight struct: attacker first, results, and level-up 
   lualib.luaL_openlibs(state);
   const fightTable = Object.entries(mem).map(([k, v]) => `[${k}]=${v}`).join(',');
   const source = `
-    local profile = dofile(${JSON.stringify(folder + '../game-pack-sources/fe1-jp-v1/lua/fe1.lua')})
+    local profile = dofile(${JSON.stringify(luaPath('fe1.lua'))})
     local mem = { [0x7674]=1,[0x7675]=1,[0x7676]=20,[0x7677]=31, [0x6a90]=1,[0x6a91]=21,[0x6a92]=1,[0x6a93]=18,[0x6a94]=18,[0x6aa0]=6,[0x6aa1]=25 }
     local fight = { ${fightTable} }
     local function read(addr) return mem[addr] or 0 end

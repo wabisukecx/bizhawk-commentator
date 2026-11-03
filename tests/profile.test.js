@@ -1,3 +1,4 @@
+import { luaPath } from './helpers/fe1.js';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { createRequire } from 'node:module';
@@ -16,7 +17,7 @@ function run(source) {
 }
 
 test('FE1 profile gates exact ROM identity and decodes HP and zero-based coordinates with validation', () => run(`
-  local profile=dofile(${JSON.stringify(folder + '../game-pack-sources/fe1-jp-v1/lua/fe1.lua')})
+  local profile=dofile(${JSON.stringify(luaPath('fe1.lua'))})
   local registry=dofile(${JSON.stringify(folder + 'profiles/registry.lua')})
   assert(registry.find("NES","8600D1880EB311BAE0ECE197F6175228E38F6B69").id==profile.id)
   assert(registry.find("NES","other-rom")==nil)

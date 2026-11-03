@@ -1,9 +1,10 @@
+import { luaPath } from './helpers/fe1.js';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { createRequire } from 'node:module';
 import { fileURLToPath } from 'node:url';
 import { Watcher } from '../app/watcher.js';
-import { dialogue } from '../game-pack-sources/fe1-jp-v1/app/fe1.js';
+import { dialogue } from './helpers/fe1.js';
 const require = createRequire(import.meta.url);
 const { lua, lauxlib, lualib, to_luastring, to_jsstring } = require('fengari');
 const folder = fileURLToPath(new URL('../lua/', import.meta.url)).replaceAll('\\', '/');
@@ -30,7 +31,7 @@ function luaDecode(rowHex, firstRow = 12) {
   const tiles = new Array(960).fill(0x5e);
   rowHex.forEach((hex, i) => { for (let x = 0; x < 32; x++) tiles[(firstRow + i) * 32 + x] = parseInt(hex.slice(x * 2, x * 2 + 2), 16); });
   const source = `
-    local text = dofile(${JSON.stringify(folder + '../game-pack-sources/fe1-jp-v1/lua/fe1-text.lua')})
+    local text = dofile(${JSON.stringify(luaPath('fe1-text.lua'))})
     local nt = { ${tiles.join(',')} }
     local result = text.dialogue(nt)
     if not result then return "NONE" end
@@ -92,7 +93,7 @@ test('a conversation is explained once after the window closes, in the chosen to
 });
 
 test('a unit named in the conversation is located relative to nearby allies', async () => {
-  const { mentionedUnits, dialogueContext } = await import('../game-pack-sources/fe1-jp-v1/app/fe1.js');
+  const { mentionedUnits, dialogueContext } = await import('./helpers/fe1.js');
   const state = { units: [
     { key: 'player:0', side: 'player', name: 'カイン', class_name: 'ソシアルナイト', hp: 18, max_hp: 18, x: 10, y: 5 },
     { key: 'player:1', side: 'player', name: 'アベル', class_name: 'ソシアルナイト', hp: 18, max_hp: 18, x: 20, y: 9 },
@@ -140,7 +141,7 @@ test('a window whose tiles stay in the nametable is explained after its text sto
 });
 
 test('overlapping scrolled pages merge into one conversation, and a half-typed repeat is not explained again', async () => {
-  const { mergePages } = await import('../game-pack-sources/fe1-jp-v1/app/fe1.js');
+  const { mergePages } = await import('./helpers/fe1.js');
   const nl = String.fromCharCode(10);
   const pages = [
     ['「ダロスっていうかいぞくが', 'おうじにあいたがってたよ', '「もう わるいことはやめて', 'みんなのため'].join(nl),

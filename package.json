@@ -11,8 +11,6 @@
     "node": ">=22"
   },
   "scripts": {
-    "prepare": "node scripts/game-pack.js build-all",
-    "pretest": "node scripts/game-pack.js build-all",
     "app": "node app/server.js",
     "start": "node src/index.js",
     "test": "node --test",

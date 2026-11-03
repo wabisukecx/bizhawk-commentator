@@ -1,9 +1,10 @@
+import { luaPath } from './helpers/fe1.js';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { Watcher } from '../app/watcher.js';
 import { createRequire } from 'node:module';
 import { fileURLToPath } from 'node:url';
-import { orientBattle } from '../game-pack-sources/fe1-jp-v1/app/fe1.js';
+import { orientBattle } from './helpers/fe1.js';
 const require = createRequire(import.meta.url);
 const { lua, lauxlib, lualib, to_luastring, to_jsstring } = require('fengari');
 const folder = fileURLToPath(new URL('../lua/', import.meta.url)).replaceAll('\\', '/');
@@ -93,7 +94,7 @@ function banner(first, second) {
   const state = lauxlib.luaL_newstate();
   lualib.luaL_openlibs(state);
   const status = lauxlib.luaL_dostring(state, to_luastring(`
-    local text = dofile(${JSON.stringify(folder + '../game-pack-sources/fe1-jp-v1/lua/fe1-text.lua')})
+    local text = dofile(${JSON.stringify(luaPath('fe1-text.lua'))})
     return tostring(text.phase_banner({ ${first.join(',')} }, { ${second.join(',')} }))
   `));
   const out = to_jsstring(lua.lua_tostring(state, -1));
@@ -115,7 +116,7 @@ test('the Lua profile exposes the banner and the bridge-facing state still decod
   lualib.luaL_openlibs(state);
   const second = nametable(computerRows), first = new Array(960).fill(0x5e);
   const status = lauxlib.luaL_dostring(state, to_luastring(`
-    local profile = dofile(${JSON.stringify(folder + '../game-pack-sources/fe1-jp-v1/lua/fe1.lua')})
+    local profile = dofile(${JSON.stringify(luaPath('fe1.lua'))})
     local mem = { [0x7674]=1,[0x7675]=2,[0x7676]=20,[0x7677]=31, [0x6a90]=1,[0x6a91]=21,[0x6a92]=1,[0x6a93]=18,[0x6a94]=18,[0x6aa0]=6,[0x6aa1]=25 }
     local nt1, nt0 = { ${second.join(',')} }, { ${first.join(',')} }
     local state = profile.read(function(addr) return mem[addr] or 0 end, function() return nt1, nt0 end)

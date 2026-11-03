@@ -17,5 +17,4 @@ ignore/
 *.gba
 *.State
 *.SaveRAM
-game-packs/*.zip
-!game-packs/fe1-jp-v1.zip
+/game-pack-sources/

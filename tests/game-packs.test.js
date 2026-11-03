@@ -8,7 +8,7 @@ import { createRequire } from 'node:module';
 import { zipSync, strToU8 } from 'fflate';
 import { readGamePack, buildGamePack, buildSourcePacks, prepareGamePacks, loadGameAdapters } from '../src/game-packs.js';
 import { createGameRegistry } from '../app/games/registry.js';
-import { fe1 } from '../game-pack-sources/fe1-jp-v1/app/fe1.js';
+import { fe1 } from './helpers/fe1.js';
 import { Watcher } from '../app/watcher.js';
 const { lua, lauxlib, lualib, to_luastring, to_jsstring } = createRequire(import.meta.url)('fengari');
 const root = fileURLToPath(new URL('../', import.meta.url));
@@ -25,11 +25,14 @@ async function fixture(t) {
 test('development sources build into the runtime folder and ZIP-only installations do not require sources', async t => {
   const options = await fixture(t);
   const sources = path.join(path.dirname(options.directory), 'sources');
-  await fs.cp(path.join(root, 'examples/game-pack'), path.join(sources, 'example'), { recursive: true });
+  await fs.cp(path.join(root, 'tests/fixtures/game-pack'), path.join(sources, 'example'), { recursive: true });
   const outputs = await buildSourcePacks(sources, options.directory);
   assert.deepEqual(outputs, [path.join(options.directory, 'example-hp-v1.zip')]);
   assert.deepEqual(await fs.readdir(sources), ['example']);
   const zip = await fs.readFile(outputs[0]);
+  const repeat = path.join(path.dirname(options.directory), 'repeat.zip');
+  await buildGamePack(path.join(sources, 'example'), repeat);
+  assert.deepEqual(await fs.readFile(repeat), zip, 'unchanged source produces the same pack and cache key');
   assert.deepEqual(await buildSourcePacks(path.join(sources, 'not-included'), options.directory), []);
   assert.deepEqual(await fs.readFile(outputs[0]), zip, 'missing sources must not change the runtime ZIP');
   const [adapter] = await loadGameAdapters(options);
@@ -57,7 +60,7 @@ function runLua(indexFile, source) {
 test('a ZIP supplies a new scalar game from Lua capture and custom observations through watcher narration', async t => {
   const options = await fixture(t);
   const filename = path.join(options.directory, 'example.zip');
-  await buildGamePack(path.join(root, 'examples/game-pack'), filename);
+  await buildGamePack(path.join(root, 'tests/fixtures/game-pack'), filename);
   const { files, manifest } = readGamePack(await fs.readFile(filename));
   files['lua/profile.lua'] = strToU8(new TextDecoder().decode(files['lua/profile.lua']).replace('return {profile_id=profile.id,', 'return {battle={unrelated=true}, profile_id=profile.id,'));
   files['lua/observer.lua'] = strToU8(new TextDecoder().decode(files['lua/observer.lua']).replace('return {observer_session_id=session,', 'return {logs={arbitrary={{id=1,text="custom log"}}}, observer_session_id=session,'));
@@ -140,7 +143,7 @@ test('with no ZIP installed, both the app and Lua bridge have no FE reader or co
 
 test('FE observation logs belong to its pack and are reset along with its timeline', async t => {
   const options = await fixture(t);
-  await buildGamePack(path.join(root, 'game-pack-sources/fe1-jp-v1'), path.join(options.directory, 'fe1.zip'));
+  await fs.copyFile(path.join(root, 'game-packs/fe1-jp-v1.zip'), path.join(options.directory, 'fe1.zip'));
   await prepareGamePacks(options);
   runLua(options.indexFile, `
     local engine=dofile(${JSON.stringify(luaFolder + 'game-packs.lua')}).engines["fe1-map-v2"]
@@ -188,13 +191,10 @@ test('a non-FE pack runtime owns derived events and model context without host s
   assert.equal(watcher.runtime.candidate(), null);
 });
 
-test('the standalone FE1 source pack builds as one ZIP and retains its adapter and Lua helper behavior', async t => {
+test('the distributed FE1 ZIP retains its adapter and Lua helper behavior', async t => {
   const options = await fixture(t);
   const filename = path.join(options.directory, 'fe1.zip');
-  await buildGamePack(path.join(root, 'game-pack-sources/fe1-jp-v1'), filename);
-  const repeat = path.join(path.dirname(options.directory), 'repeat.zip');
-  await buildGamePack(path.join(root, 'game-pack-sources/fe1-jp-v1'), repeat);
-  assert.deepEqual(await fs.readFile(filename), await fs.readFile(repeat), 'unchanged source produces the same pack and cache key');
+  await fs.copyFile(path.join(root, 'game-packs/fe1-jp-v1.zip'), filename);
   const pack = readGamePack(await fs.readFile(filename));
   assert.ok(pack.files['app/fe1-names.js']);
   assert.ok(pack.files['app/fe1-i18n.js']);
@@ -219,7 +219,7 @@ test('the standalone FE1 source pack builds as one ZIP and retains its adapter a
 
 test('pack validation rejects path traversal, case collisions, excessive expansion and unsupported manifests', async t => {
   const options = await fixture(t);
-  await buildGamePack(path.join(root, 'examples/game-pack'), path.join(options.directory, 'example.zip'));
+  await buildGamePack(path.join(root, 'tests/fixtures/game-pack'), path.join(options.directory, 'example.zip'));
   const { files } = readGamePack(await fs.readFile(path.join(options.directory, 'example.zip')));
   for (const name of ['../escape.js', 'C:/escape.js', 'lua/../../escape.lua', 'host.mjs', 'package.json', 'lua/CON.lua']) {
     assert.throws(() => readGamePack(zipSync({ ...files, [name]: strToU8('x') })), /entry|path/);
@@ -235,7 +235,7 @@ test('pack validation rejects path traversal, case collisions, excessive expansi
 test('conflicting packs fail before publishing an index and missing folders publish an empty index', async t => {
   const options = await fixture(t);
   const filename = path.join(options.directory, 'one.zip');
-  await buildGamePack(path.join(root, 'examples/game-pack'), filename);
+  await buildGamePack(path.join(root, 'tests/fixtures/game-pack'), filename);
   await fs.copyFile(filename, path.join(options.directory, 'two.zip'));
   await assert.rejects(prepareGamePacks(options), /Duplicate game pack ID/);
   await assert.rejects(fs.readFile(options.indexFile), /ENOENT/);
@@ -253,7 +253,7 @@ test('conflicting packs fail before publishing an index and missing folders publ
 test('updates use immutable caches, removal clears registration, and adapter contract mismatches fail', async t => {
   const options = await fixture(t);
   const filename = path.join(options.directory, 'example.zip');
-  await buildGamePack(path.join(root, 'examples/game-pack'), filename);
+  await buildGamePack(path.join(root, 'tests/fixtures/game-pack'), filename);
   const concurrent = await Promise.all(Array.from({ length: 8 }, () => prepareGamePacks(options)));
   const first = concurrent[0][0];
   assert.ok(concurrent.every(packs => packs[0].directory === first.directory), 'simultaneous app/MCP startup can share the cache and index');

@@ -6,6 +6,6 @@ Automatic RAM-based commentary currently supports a specific Japanese version of
 
 See the [日本語 README](README.ja.md) for installation, usage, compatibility and limitations.
 
-Game-specific readers, commentary adapters and name tables can be distributed as a single ZIP. See [Game packs](docs/game-packs.ja.md) for installation, FE1 export and a synthetic non-FE template.
+Game-specific readers, commentary adapters and name tables can be distributed as a single ZIP. See [Game packs](docs/game-packs.ja.md) for installation, pack creation and a synthetic non-FE example. The FE1 ZIP is included.
 
 Third-party attribution is in [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).

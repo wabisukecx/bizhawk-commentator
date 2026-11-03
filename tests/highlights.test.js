@@ -1,9 +1,9 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { Watcher } from '../app/watcher.js';
-import { playByPlay, analyzeBattle } from '../game-pack-sources/fe1-jp-v1/app/fe1-play.js';
-import { battleHighlight } from '../game-pack-sources/fe1-jp-v1/app/fe1.js';
-import { tones, localizedTone } from '../game-pack-sources/fe1-jp-v1/app/tone.js';
+import { playByPlay, analyzeBattle } from './helpers/fe1.js';
+import { battleHighlight } from './helpers/fe1.js';
+import { tones, localizedTone } from './helpers/fe1.js';
 
 const unit = (key, side, extra = {}) => ({ key, side, character_id: 4, name: side === 'player' ? 'カイン' : undefined, class_name: side === 'player' ? 'ソシアルナイト' : 'かいぞく', hp: 18, max_hp: 18, x: 5, y: 5, ...extra });
 const world = units => ({ profile_id: 'fe1-jp-v1', chapter: 1, turn: 1, units });

@@ -1,3 +1,4 @@
+import { luaPath } from './helpers/fe1.js';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { createRequire } from 'node:module';
@@ -37,7 +38,7 @@ function decodeWindows(rowHex, firstRow = 2) {
   const tiles = new Array(960).fill(0x5e);
   rowHex.forEach((hex, i) => { for (let x = 0; x < 32; x++) tiles[(firstRow + i) * 32 + x] = parseInt(hex.slice(x * 2, x * 2 + 2), 16); });
   const source = `
-    local text = dofile(${JSON.stringify(folder + '../game-pack-sources/fe1-jp-v1/lua/fe1-text.lua')})
+    local text = dofile(${JSON.stringify(luaPath('fe1-text.lua'))})
     local out = {}
     for _, w in ipairs(text.windows({ ${tiles.join(',')} })) do out[#out + 1] = w.col .. "|" .. tostring(w.speech) .. "|" .. w.unknown .. "|" .. w.text end
     return table.concat(out, "@@")
@@ -72,7 +73,7 @@ test('no window in a capture without a speech marker is reported as dialogue', (
   const tiles = new Array(960).fill(0x5e);
   rows.forEach((hex, i) => { for (let x = 0; x < 32; x++) tiles[(2 + i) * 32 + x] = parseInt(hex.slice(x * 2, x * 2 + 2), 16); });
   const status = lauxlib.luaL_dostring(state, to_luastring(`
-    local text = dofile(${JSON.stringify(folder + '../game-pack-sources/fe1-jp-v1/lua/fe1-text.lua')})
+    local text = dofile(${JSON.stringify(luaPath('fe1-text.lua'))})
     return tostring(text.dialogue({ ${tiles.join(',')} }))
   `));
   const out = to_jsstring(lua.lua_tostring(state, -1));
@@ -87,7 +88,7 @@ test('the unit information window is parsed into name, class text, level and HP'
   const tiles = new Array(960).fill(0x5e);
   rows.forEach((hex, i) => { for (let x = 0; x < 32; x++) tiles[(2 + i) * 32 + x] = parseInt(hex.slice(x * 2, x * 2 + 2), 16); });
   const status = lauxlib.luaL_dostring(state, to_luastring(`
-    local text = dofile(${JSON.stringify(folder + '../game-pack-sources/fe1-jp-v1/lua/fe1-text.lua')})
+    local text = dofile(${JSON.stringify(luaPath('fe1-text.lua'))})
     local info = text.unit_info({ ${tiles.join(',')} })
     local empty = text.unit_info({ ${new Array(960).fill(0xff).join(',')} })
     return info.name .. "|" .. info.class_text .. "|" .. info.level .. "|" .. info.hp .. "|" .. info.max_hp .. "|" .. tostring(empty)

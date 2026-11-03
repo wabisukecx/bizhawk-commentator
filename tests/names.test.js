@@ -1,8 +1,9 @@
+import { luaPath } from './helpers/fe1.js';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
-import { playerNames, enemyNames, unitName, battleName } from '../game-pack-sources/fe1-jp-v1/app/fe1-names.js';
-import { fe1 } from '../game-pack-sources/fe1-jp-v1/app/fe1.js';
+import { playerNames, enemyNames, unitName, battleName } from './helpers/fe1.js';
+import { fe1 } from './helpers/fe1.js';
 
 test('name lookup uses character ID, handles old bridge data and does not name generic enemies', async () => {
   assert.equal(playerNames[8], 'リカード');
@@ -13,7 +14,7 @@ test('name lookup uses character ID, handles old bridge data and does not name g
   assert.equal(unitName({ side: 'enemy', character_id: 133 }), 'ガルダへい', 'old bridge data without a name still gets the enemy name');
   assert.equal(unitName({ side: 'enemy', character_id: 133, name: 'ガルダへい' }), 'ガルダへい');
   assert.equal(unitName({ side: 'player', character_id: 255 }), undefined);
-  const lua = await readFile(new URL('../game-pack-sources/fe1-jp-v1/lua/fe1.lua', import.meta.url), 'utf8');
+  const lua = await readFile(luaPath('fe1.lua'), 'utf8');
   const tableOf = text => Object.fromEntries([...text.matchAll(/\[(\d+)\]="([^"]+)"/g)].map(m => [m[1], m[2]]));
   const split = lua.indexOf('local enemy_names');
   assert.deepEqual(tableOf(lua.slice(0, split)), playerNames, 'Lua and automatic commentary must use identical PID names');

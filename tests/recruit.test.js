@@ -1,12 +1,13 @@
+import { luaPath } from './helpers/fe1.js';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { createRequire } from 'node:module';
 import { fileURLToPath } from 'node:url';
 import { Watcher } from '../app/watcher.js';
-import { playByPlay } from '../game-pack-sources/fe1-jp-v1/app/fe1-play.js';
-import { selectedUnit, recruitHighlight } from '../game-pack-sources/fe1-jp-v1/app/fe1.js';
-import { localizedTone } from '../game-pack-sources/fe1-jp-v1/app/tone.js';
-import { localizeSnapshot } from '../game-pack-sources/fe1-jp-v1/app/fe1-i18n.js';
+import { playByPlay } from './helpers/fe1.js';
+import { selectedUnit, recruitHighlight } from './helpers/fe1.js';
+import { localizedTone } from './helpers/fe1.js';
+import { localizeSnapshot } from './helpers/fe1.js';
 const require = createRequire(import.meta.url);
 const { lua, lauxlib, lualib, to_luastring, to_jsstring } = require('fengari');
 const folder = fileURLToPath(new URL('../lua/', import.meta.url)).replaceAll('\\', '/');
@@ -123,7 +124,7 @@ test('enemy records are named from the enemy name table of the game (173 is Daro
   const state = lauxlib.luaL_newstate();
   lualib.luaL_openlibs(state);
   const source = `
-    local profile = dofile(${JSON.stringify(folder + '../game-pack-sources/fe1-jp-v1/lua/fe1.lua')})
+    local profile = dofile(${JSON.stringify(luaPath('fe1.lua'))})
     local mem = { [0x7674]=2,[0x7675]=3,[0x7676]=20,[0x7677]=31, [0x6a90]=1,[0x6a91]=21,[0x6a92]=1,[0x6a93]=18,[0x6a94]=18,[0x6aa0]=6,[0x6aa1]=25,
       [0x7078]=173,[0x7079]=8,[0x707a]=3,[0x707b]=21,[0x707c]=21,[0x7088]=4,[0x7089]=24,
       [0x7078+27]=133,[0x7079+27]=8,[0x707a+27]=1,[0x707b+27]=18,[0x707c+27]=18,[0x7088+27]=5,[0x7089+27]=20 }

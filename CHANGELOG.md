@@ -8,10 +8,10 @@
 
 ## 0.13.0
 
-- Make FE1 a standalone source/ZIP pack. Move its memory and text readers, names, English mappings, narration phrases, runtime interpretation and development tools under `game-pack-sources/fe1-jp-v1/`; keep `game-packs/` for runtime ZIPs. ZIP-only installations do not require the source folder.
+- Make FE1 a standalone source/ZIP pack. Distribute its memory and text readers, names, English mappings, narration phrases and runtime interpretation in `game-packs/fe1-jp-v1.zip`. Keep development sources and verification tools locally under ignored `ignore/game-pack-sources/`, outside the distribution.
 - Remove built-in game registration and all FE-specific phase, conversation, battle-log and recruitment handling from the host watcher and Lua bridge. No ZIP means no automatic FE interpretation.
 - Introduce pack API 2 with pack-owned observation engines/logs, runtime hooks, snapshot normalization and narration phrases; provide a public `#commentator/host` API.
-- Replace the FE-specific export command with generic `build`/`build-all`. Source packs build during installation and tests, but normal startup reads only ZIPs.
+- Replace the FE-specific export command with generic `build`/`build-all`. Build sources explicitly; installation, startup and public tests use distributed ZIPs without requiring development sources.
 - Update the shared service/Lua interface to 0.4.0. API 1 packs require migration and rebuilding.
 
 ## 0.12.3

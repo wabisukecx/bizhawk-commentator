@@ -2,9 +2,9 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { Watcher } from '../app/watcher.js';
 import { getTone, phrase } from '../app/tones.js';
-import { tones, localizedTone } from '../game-pack-sources/fe1-jp-v1/app/tone.js';
-import { playByPlay } from '../game-pack-sources/fe1-jp-v1/app/fe1-play.js';
-import { selectCandidate } from '../game-pack-sources/fe1-jp-v1/app/fe1-analysis.js';
+import { tones, localizedTone } from './helpers/fe1.js';
+import { playByPlay } from './helpers/fe1.js';
+import { selectCandidate } from './helpers/fe1.js';
 import { buildCommentaryInstructions } from '../app/prompts.js';
 
 const unit = (key, side, extra = {}) => ({ key, side, character_id: 4, name: side === 'player' ? 'カイン' : undefined, class_name: side === 'player' ? 'ソシアルナイト' : 'かいぞく', hp: 18, max_hp: 18, x: 5, y: 5, ...extra });
@@ -91,7 +91,7 @@ test('critical or lord damage is high intensity and the prompt carries tone and 
 test('a decided battle tones commentary down; an even or dangerous one does not', async () => {
   const players = [unit('player:0', 'player', { character_id: 1 }), unit('player:1', 'player')];
   const crowd = n => Array.from({ length: n }, (_, i) => unit(`enemy:${i}`, 'enemy', { x: 20 + i }));
-  const { isSettled } = await import('../game-pack-sources/fe1-jp-v1/app/fe1.js');
+  const { isSettled } = await import('./helpers/fe1.js');
   assert.equal(isSettled(state([...players, ...crowd(1)]), { peakEnemies: 8 }), true);
   assert.equal(isSettled(state([...players, ...crowd(5)]), { peakEnemies: 8 }), false, 'still many enemies');
   assert.equal(isSettled(state([...players, ...crowd(1)]), { peakEnemies: 2 }), false, 'never a real crowd');
@@ -116,7 +116,7 @@ test('reviewTone rejects leaked notes everywhere and casual endings in formal to
 });
 
 test('menus and battle animations keep the commentator quiet; a stuck menu is ignored after 3 minutes', async () => {
-  const { scene } = await import('../game-pack-sources/fe1-jp-v1/app/fe1.js');
+  const { scene } = await import('./helpers/fe1.js');
   assert.equal(scene({ scene: { menu_mode_raw: 0, fight_class_raw: 0x55 } }), 'map');
   assert.equal(scene({ scene: { menu_mode_raw: 0x0C, fight_class_raw: 0x55 } }), 'menu');
   assert.equal(scene({ scene: { menu_mode_raw: 0, fight_class_raw: 7 } }), 'battle');

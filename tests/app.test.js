@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { Watcher } from '../app/watcher.js';
-import { selectCandidate, fingerprint } from '../game-pack-sources/fe1-jp-v1/app/fe1.js';
+import { selectCandidate, fingerprint } from './helpers/fe1.js';
 import { subscriptionEnvironment, validateSubscription, parseComment } from '../app/claude.js';
 import { createApp } from '../app/server.js';
 
