@@ -17,3 +17,4 @@ ignore/
 *.gba
 *.State
 *.SaveRAM
+game-packs/*.zip

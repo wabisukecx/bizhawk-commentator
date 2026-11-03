@@ -3,11 +3,13 @@ import { Bridge, FrameDecoder, encodeFrame } from './bridge.js';
 import { captureContext, captureState, normalizeObservations } from './context.js';
 import { brokerEndpoint } from './shared-client.js';
 import { SERVICE_VERSION } from './version.js';
+import { prepareGamePacks } from './game-packs.js';
 
 const port = Number(process.env.BIZHAWK_PORT ?? 8766);
 if (!Number.isInteger(port) || port < 1 || port > 65535) throw new Error('Invalid BIZHAWK_PORT');
 const idleMs = Number(process.env.BIZHAWK_SERVICE_IDLE_MS ?? 15000);
 if (!Number.isInteger(idleMs) || idleMs < 100 || idleMs > 60000) throw new Error('Invalid service idle timeout');
+await prepareGamePacks();
 const bridge = new Bridge({ port });
 const peers = new Set();
 let idleTimer;

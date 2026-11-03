@@ -17,6 +17,8 @@ The factual FE1 memory layout was researched using StanHash/fe1 at commit `9b2fd
 
 `@modelcontextprotocol/sdk` is the official MCP TypeScript SDK (MIT). Its notices are included in the installed package. The exact installed dependency tree is recorded in `package-lock.json`.
 
+`fflate` (MIT) reads and creates game-pack ZIP archives. Its license and notices are included in the installed package.
+
 ## Development dependency
 
 `fengari` (MIT) executes the Lua script against simulated emulator APIs during automated tests. It is not used by the running MCP server.

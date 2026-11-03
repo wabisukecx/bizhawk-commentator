@@ -1,0 +1,11 @@
+{
+  "apiVersion": 1,
+  "id": "example-hp-v1",
+  "version": "1.0.0",
+  "title": "Synthetic HP example (not a supported game)",
+  "memoryDomain": "System Bus",
+  "rom": { "system": "NES", "hashes": ["0000000000000000000000000000000000000000"] },
+  "lua": "lua/profile.lua",
+  "adapter": "app/adapter.js",
+  "observation": { "kind": "example-hp-events-v1", "entry": "lua/observer.lua" }
+}

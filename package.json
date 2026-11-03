@@ -1,17 +1,25 @@
 {
   "name": "bizhawk-commentator",
-  "version": "0.11.0",
+  "version": "0.12.0",
   "private": true,
   "description": "Read-only BizHawk context for Claude commentary",
   "type": "module",
-  "engines": { "node": ">=22" },
+  "engines": {
+    "node": ">=22"
+  },
   "scripts": {
     "app": "node app/server.js",
     "start": "node src/index.js",
     "test": "node --test",
     "config": "node scripts/claude-config.js",
-    "check": "node scripts/check.js"
+    "check": "node scripts/check.js",
+    "game-pack": "node scripts/game-pack.js"
   },
-  "dependencies": { "@modelcontextprotocol/sdk": "1.32.2" },
-  "devDependencies": { "fengari": "0.1.5" }
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "1.32.2",
+    "fflate": "0.8.3"
+  },
+  "devDependencies": {
+    "fengari": "0.1.5"
+  }
 }

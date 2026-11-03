@@ -40,7 +40,7 @@ local function read_state()
     if not profile then return nil,"unsupported_rom" end
     if not observations.supports(profile.observation_kind) then return nil,"unsupported_observation_schema" end
     if not memory or not memory.read_u8 then return nil,"memory_read_unavailable" end
-    local ok,state,reason=pcall(profile.read,function(address) return memory.read_u8(address,"System Bus") end,read_nametable)
+    local ok,state,reason=pcall(profile.read,function(address) return memory.read_u8(address,profile.memory_domain or "System Bus") end,read_nametable)
     if not ok then return nil,"memory_read_failed: " .. tostring(state) end
     return state,reason
 end
@@ -118,7 +118,7 @@ local function get_info()
         end
     end
     return {
-        bridge_version = "0.2.2",
+        bridge_version = "0.3.0",
         system = emu.getsystemid(),
         rom_name = gameinfo.getromname(),
         rom_hash = gameinfo.getromhash(),

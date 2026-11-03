@@ -30,7 +30,7 @@ export class Watcher {
   }
   publicState() {
     const now = this.clock();
-    return { appId: 'bizhawk-commentator', appVersion: '0.11.0', model: this.model, language: this.language, languages: Object.entries(languages).map(([key, value]) => ({ key, label: value.label })),
+    return { appId: 'bizhawk-commentator', appVersion: '0.12.0', model: this.model, language: this.language, languages: Object.entries(languages).map(([key, value]) => ({ key, label: value.label })),
       tone: this.tone, tones: Object.keys(tones).map(key => { const data = localizedTone(key, this.language); return { key, label: data.label, summary: data.summary }; }),
       speech: { rate: tones[this.tone].rate, pitch: tones[this.tone].pitch, lang: this.language === 'en' ? 'en-US' : 'ja-JP' }, models: Object.entries(models).map(([key, value]) => ({ key, label: value.label })), includedOnlyConfirmed: this.includedOnlyConfirmed, running: this.running, busy: Boolean(this.active), message: this.message, connected: this.connected ?? false,
       plan: this.plan ?? null, frequency: this.frequency, callsThisHour: this.calls.filter(time => now - time < 3600000).length,

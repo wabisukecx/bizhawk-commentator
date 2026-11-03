@@ -8,7 +8,7 @@ const port = Number(process.env.BIZHAWK_PORT ?? 8766);
 if (!Number.isInteger(port) || port < 1 || port > 65535) throw new Error('BIZHAWK_PORT must be 1–65535');
 const shared = new SharedClient(port);
 await shared.start();
-const server = new Server({ name: 'bizhawk-commentator', version: '0.2.0' }, {
+const server = new Server({ name: 'bizhawk-commentator', version: '0.3.0' }, {
   capabilities: { tools: {}, prompts: {} },
   instructions: commentaryInstructions,
 });
