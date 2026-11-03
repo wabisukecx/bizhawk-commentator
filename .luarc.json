@@ -1,0 +1,4 @@
+{
+  "runtime.version": "Lua 5.4",
+  "diagnostics.globals": ["emu", "memory", "client", "comm", "event", "console", "gameinfo", "joypad", "gui", "bizstring"]
+}

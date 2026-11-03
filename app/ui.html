@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>BizHawk と、ひとこと。</title>
+<style>
+:root{color-scheme:dark;--bg:#101719;--panel:#182225;--line:#304043;--text:#edf2ed;--muted:#a1b2b0;--green:#b8d7a5;--gold:#e8c98b}*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font-family:'Yu Gothic UI','Meiryo',sans-serif;font-size:15px}main{max-width:1130px;margin:auto;padding:44px 36px}header{display:flex;justify-content:space-between;align-items:center;margin-bottom:38px}.eyebrow{color:var(--green);letter-spacing:.18em;font-size:11px;font-weight:700}h1{font-family:'Yu Mincho','Meiryo',serif;font-weight:500;font-size:32px;margin:10px 0 0}.pill{display:inline-flex;align-items:center;gap:9px;border:1px solid var(--line);border-radius:30px;padding:9px 14px;color:var(--muted);font-size:12px}.dot{height:7px;width:7px;border-radius:50%;background:#80918e}.dot.on{background:var(--green);box-shadow:0 0 12px #b8d7a533}.layout{display:grid;grid-template-columns:minmax(0,1.65fr) minmax(270px,1fr);gap:24px}.panel{border:1px solid var(--line);border-radius:18px;background:var(--panel)}.screen{padding:28px;min-height:380px;display:flex;flex-direction:column;background:radial-gradient(ellipse at top right,#2c3b332b,transparent 65%),var(--panel)}.screen-label{display:flex;align-items:center;justify-content:space-between;color:var(--muted);font-size:12px}.mark{font-size:15px;color:var(--green)}.caption-area{flex:1;display:flex;align-items:center;padding:32px 0}.caption{font-size:27px;line-height:1.9;letter-spacing:.02em;margin:0;white-space:pre-wrap}.placeholder{color:#7f9490;font-size:21px}.status{color:var(--muted);line-height:1.8;font-size:12px;min-height:24px}.controls{padding:24px 28px;margin-top:18px}label{display:block;color:var(--muted);font-size:12px;margin-bottom:9px}select{background:#101719;color:var(--text);border:1px solid var(--line);padding:11px 14px;border-radius:9px;width:100%;font:inherit;margin-bottom:18px}button{border:0;border-radius:9px;padding:13px 20px;font:inherit;font-weight:600;cursor:pointer}button:disabled{opacity:.45;cursor:wait}.primary{background:var(--green);color:#1d2c22;width:100%}.secondary{background:transparent;border:1px solid #758c82;color:var(--text);width:100%}.fine{font-size:11px;color:var(--muted);line-height:1.8;margin:14px 0 0}.history{padding:24px;min-height:570px}.section-title{font-size:14px;font-weight:500;margin:0 0 23px}.history-list{max-height:550px;overflow:auto}.entry{padding:0 0 19px;margin:0 0 19px;border-bottom:1px solid var(--line)}.entry time{font-size:10px;color:#8ba19b;font-variant-numeric:tabular-nums}.entry p{line-height:1.8;font-size:14px;margin:7px 0 0}.empty{color:#7f9490;line-height:1.9;font-size:13px}.bottom{display:flex;justify-content:space-between;gap:12px;margin-top:23px;color:var(--muted);font-size:11px}.bottom a{color:var(--green);text-decoration:none}.error{color:#edbd9c}.overlay{background:transparent!important;overflow:hidden}.overlay main{display:none}.overlay #overlay-caption{position:fixed;bottom:6%;left:8%;right:8%;background:#101719e8;border:1px solid #b8d7a566;border-radius:14px;padding:22px 30px;color:#fff;font-size:30px;line-height:1.7;text-align:center;text-shadow:0 2px 4px #000;display:none}.overlay #overlay-caption.visible{display:block}@media(max-width:750px){main{padding:26px 18px}.layout{grid-template-columns:1fr}header{align-items:flex-start;gap:14px}h1{font-size:26px}.caption{font-size:23px}.history{min-height:160px}.bottom{flex-direction:column}}
+</style><style>[hidden]{display:none!important}.option-fields{display:grid;grid-template-columns:1fr 1.6fr;gap:12px}@media(max-width:600px){.option-fields{grid-template-columns:1fr}}main{padding-top:28px;padding-bottom:28px}header{margin-bottom:26px}.screen{min-height:300px;padding:24px}.controls{padding:18px 24px}select{margin-bottom:14px}.history{min-height:520px}.history-list{max-height:450px}</style><style>.header-right{display:flex;align-items:center;gap:12px}.header-right select{margin:0;width:auto;padding:8px 12px;font-size:12px}.notice{margin:0 0 16px;padding:12px 14px;border-left:3px solid var(--gold);background:#e8c98b0a;color:#e8d8b8;font-size:12px;line-height:1.8}.notice a{color:var(--gold)}.confirm{display:flex;gap:8px;align-items:flex-start;line-height:1.7}</style></head><body><main>
+<header><div><div class="eyebrow">BIZHAWK COMMENTATOR</div><h1 data-i18n="title">遊ぶ時間に、ひとこと。</h1></div><div class="header-right"><select id="language" aria-label="Language"><option value="ja">日本語</option><option value="en">English</option></select><span class="pill"><span id="dot" class="dot"></span><span id="connection" data-i18n="connChecking">接続を確認中</span></span></div></header>
+<div class="layout"><section><div class="panel screen"><div class="screen-label"><span><span class="mark">◌</span>　<span data-i18n="captionLabel">いまの字幕</span></span><span id="game">—</span></div><div class="caption-area"><p id="caption" class="caption placeholder"></p></div><div id="status" class="status" role="status" aria-live="polite" data-i18n="statusReady">準備しています。</div></div>
+<div class="panel controls"><p class="notice"><span data-i18n="notice"></span><br><a href="https://claude.ai/settings/usage" target="_blank" rel="noopener" data-i18n="noticeLink"></a></p><div class="option-fields"><div><label for="model" data-i18n="modelLabel">AIモデル</label><select id="model"><option value="sonnet">Sonnet</option><option value="haiku">Haiku</option></select></div><div><label for="frequency" data-i18n="frequencyLabel">話しかける頻度</label><select id="frequency"><option value="quiet" data-i18n="freqQuiet"></option><option value="balanced" data-i18n="freqBalanced" selected></option><option value="lively" data-i18n="freqLively"></option></select></div></div><div class="option-fields"><div><label for="tone" data-i18n="toneLabel">実況の口調</label><select id="tone"></select></div><div><label for="voice" data-i18n="voiceLabel">読み上げ</label><select id="voice"><option value="" data-i18n="voiceOff"></option></select></div></div><label id="included-only-label" class="confirm"><input id="included-only" type="checkbox"><span data-i18n="includedOnly"></span></label><button id="toggle" class="primary" data-i18n="start">見守りを開始</button><p class="fine"><span data-i18n="fine"></span><br><span id="usage"></span></p></div></section>
+<aside class="panel history"><h2 class="section-title" data-i18n="historyTitle">これまでのひとこと</h2><div id="history" class="history-list"></div></aside></div>
+<footer class="bottom"><span id="count"></span><a href="/overlay" target="_blank" rel="noopener" data-i18n="overlayLink"></a></footer>
+</main><div id="overlay-caption" aria-live="polite"></div>
+<script>
+const overlay=location.pathname==='/overlay';if(overlay)document.body.classList.add('overlay');
+const get=id=>document.getElementById(id);
+const I18N={
+ja:{title:'遊ぶ時間に、ひとこと。',connChecking:'接続を確認中',connOn:'BizHawk 接続済み',connOff:'BizHawk 接続待ち',connLost:'アプリに再接続中',captionLabel:'いまの字幕',
+placeholder:'ゲームの動きを見ながら、<br>気づいたことを、ぽつぽつと。',watching:'見守っています。',statusReady:'準備しています。',statusLost:'アプリとの接続を確認しています。',
+notice:'サブスク内で使うため、Claudeの「追加使用量／Usage credits」はオフにしてください。オンだと、APIキーなしでもPro枠を超えて有料で続行されます。',noticeLink:'Claudeの使用量設定を開く ↗',
+modelLabel:'AIモデル',frequencyLabel:'話しかける頻度',freqQuiet:'控えめ — 大きな変化を中心に',freqBalanced:'ときどき — 移動にも時々反応',freqLively:'少し多め — 小さな変化も拾う',
+toneLabel:'実況の口調',voiceLabel:'読み上げ（このブラウザの音声）',voiceOff:'字幕のみ（音声なし）',voiceTest:'音声のテストです。',includedOnly:'Claudeの「追加使用量」をオフにしている',
+start:'見守りを開始',stop:'見守りを停止',fine:'変化がない間は静かに。操作画面を閉じると停止します。',usageDefault:'Claude Proの利用枠を使います。APIキーは使用しません。',
+usagePlan:(plan)=>`Claude ${plan==='pro'?'Pro':plan} の利用枠で実行。`,count:(n,limit)=>`このアプリの直近1時間の生成：${n} / ${limit}回（Pro全体の利用上限とは別です）`,
+historyTitle:'これまでのひとこと',historyEmpty:'見守りを始めた後の変化に反応します。',overlayLink:'字幕だけを別画面で開く ↗',live:'実況',locale:'ja-JP',zone:'Asia/Tokyo'},
+en:{title:'A word while you play.',connChecking:'Checking connection',connOn:'BizHawk connected',connOff:'Waiting for BizHawk',connLost:'Reconnecting to the app',captionLabel:'Current caption',
+placeholder:'Watching the game and<br>commenting now and then.',watching:'Watching.',statusReady:'Getting ready.',statusLost:'Checking the connection to the app.',
+notice:'To stay within your subscription, turn off Extra usage (usage credits) in Claude. If it is on, usage can continue past your Pro allowance and be billed, even without an API key.',noticeLink:'Open Claude usage settings ↗',
+modelLabel:'AI model',frequencyLabel:'How often to speak',freqQuiet:'Quiet — big changes only',freqBalanced:'Balanced — occasional reactions to movement',freqLively:'Lively — pick up small changes too',
+toneLabel:'Commentary tone',voiceLabel:'Read aloud (this browser\'s voice)',voiceOff:'Captions only (no voice)',voiceTest:'This is a voice test.',includedOnly:'Extra usage in Claude is turned off',
+start:'Start watching',stop:'Stop watching',fine:'Quiet while nothing changes. Closing this page stops watching.',usageDefault:'Uses your Claude Pro allowance. No API key is used.',
+usagePlan:(plan)=>`Running on your Claude ${plan==='pro'?'Pro':plan} allowance.`,count:(n,limit)=>`Generations by this app in the last hour: ${n} / ${limit} (separate from your overall Pro limit)`,
+historyTitle:'What was said',historyEmpty:'Reacts to changes after you start watching.',overlayLink:'Open captions only in another window ↗',live:'Live',locale:'en-US',zone:undefined}};
+let current=null,pending=false,historySignature='',lang='ja',toneLang=null;
+const tr=key=>I18N[lang][key];
+function applyLanguage(next){lang=next;document.documentElement.lang=next;document.title=next==='en'?'BizHawk Commentator':'BizHawk と、ひとこと。';
+for(const element of document.querySelectorAll('[data-i18n]')){const value=tr(element.dataset.i18n);if(typeof value==='string')element.textContent=value}
+get('language').value=next;historySignature='';loadVoices()}
+function render(state){const initial=!current;if(state.language&&state.language!==lang)applyLanguage(state.language);current=state;
+if(state.includedOnlyConfirmed)get('included-only').checked=true;get('included-only-label').hidden=state.includedOnlyConfirmed;
+get('dot').classList.toggle('on',state.connected);get('connection').textContent=state.connected?tr('connOn'):tr('connOff');
+get('game').textContent=state.game?state.game.label:'—';get('status').textContent=state.message;
+get('toggle').textContent=state.running?tr('stop'):tr('start');get('toggle').className=state.running?'secondary':'primary';
+get('toggle').disabled=pending||(!state.running&&!get('included-only').checked);get('included-only').disabled=state.running;
+get('model').disabled=state.running||pending;if(state.running||initial)get('model').value=state.model;
+fillTones(state);get('tone').disabled=state.running||pending;if(state.running||initial)get('tone').value=state.tone;
+get('language').disabled=state.running||pending;handleSpeech(state);
+get('frequency').disabled=state.running||pending;if(state.running||initial)get('frequency').value=state.frequency;
+get('usage').textContent=state.plan?tr('usagePlan')(state.plan):tr('usageDefault');
+get('count').textContent=tr('count')(state.callsThisHour,state.hourlyLimit);
+const signature=state.history.map(item=>item.id).join(',');
+if(signature!==historySignature){historySignature=signature;get('history').replaceChildren();
+if(!state.history.length){const p=document.createElement('p');p.className='empty';p.textContent=tr('historyEmpty');get('history').append(p)}
+for(const item of [...state.history].reverse()){const entry=document.createElement('div');entry.className='entry';const time=document.createElement('time');
+const options={hour:'2-digit',minute:'2-digit'};if(tr('zone'))options.timeZone=tr('zone');
+time.textContent=new Date(item.at).toLocaleTimeString(tr('locale'),options)+' · '+(item.kind==='play'?tr('live'):(state.models?.find(model=>model.key===item.model)?.label??''));
+const text=document.createElement('p');text.textContent=item.text;entry.append(time,text);get('history').append(entry)}}
+renderSubtitle()}
+const synth=window.speechSynthesis;let voices=[],queue=[],currentUtterance=null,seen=new Set(),seenReady=false;
+function fillTones(state){const select=get('tone');if(!state.tones)return;if(select.options.length&&toneLang===state.language)return;const keep=select.value;select.replaceChildren(...state.tones.map(tone=>new Option(tone.label+' — '+tone.summary,tone.key)));toneLang=state.language;select.value=keep||state.tone}
+function voiceKey(){return 'bhc-voice-'+lang}
+function loadVoices(){const select=get('voice');if(!synth){select.disabled=true;return}
+voices=synth.getVoices().filter(voice=>voice.lang.toLowerCase().startsWith(lang));const saved=localStorage.getItem(voiceKey())??'';
+select.replaceChildren(new Option(tr('voiceOff'),''),...voices.map(voice=>new Option(voice.name,voice.name)));select.value=voices.some(voice=>voice.name===saved)?saved:''}
+function speak(item,speech){if(!synth)return;const utterance=new SpeechSynthesisUtterance(item.text);utterance.lang=speech?.lang??(lang==='en'?'en-US':'ja-JP');
+utterance.voice=voices.find(voice=>voice.name===get('voice').value)??null;utterance.rate=speech?.rate??1;utterance.pitch=speech?.pitch??1;
+const done=()=>{if(currentUtterance!==utterance)return;currentUtterance=null;pump(speech)};utterance.onend=done;utterance.onerror=done;currentUtterance=utterance;synth.speak(utterance)}
+function pump(speech){while(!currentUtterance&&queue.length){const item=queue.shift();if(Date.now()-item.at>(item.kind==='play'?8000:20000))continue;speak(item,speech)}}
+function handleSpeech(state){if(overlay||!synth)return;if(!seenReady){state.history.forEach(item=>seen.add(item.id));seenReady=true;return}
+if(!state.running){queue=[];currentUtterance=null;synth.cancel()}
+for(const item of state.history){if(seen.has(item.id))continue;seen.add(item.id);if(!state.running||!get('voice').value)continue;
+if(item.intensity==='high'){queue=[];currentUtterance=null;synth.cancel()}else if(item.kind==='play'){const index=queue.findIndex(queued=>queued.kind==='play');if(index>=0)queue.splice(index,1)}
+queue.push(item)}pump(state.speech)}
+if(synth){synth.onvoiceschanged=loadVoices;get('voice').addEventListener('change',()=>{localStorage.setItem(voiceKey(),get('voice').value);queue=[];currentUtterance=null;synth.cancel();if(get('voice').value)speak({text:tr('voiceTest'),at:Date.now(),kind:'test'},current?.speech)})}else{get('voice').disabled=true}
+function renderSubtitle(){const subtitle=current?.subtitle;const visible=subtitle&&subtitle.expiresAt>Date.now();get('overlay-caption').classList.toggle('visible',Boolean(visible));get('overlay-caption').textContent=visible?subtitle.text:'';
+if(visible){get('caption').textContent=subtitle.text;get('caption').classList.remove('placeholder')}
+else{if(current?.running)get('caption').textContent=tr('watching');else get('caption').innerHTML=tr('placeholder');get('caption').classList.add('placeholder')}}
+async function post(path,body){const response=await fetch(path,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});const value=await response.json();if(!response.ok)throw new Error(value.error);return value}
+get('toggle').addEventListener('click',async()=>{if(pending)return;pending=true;get('toggle').disabled=true;
+try{render(await post(current?.running?'/api/stop':'/api/start',{frequency:get('frequency').value,model:get('model').value,tone:get('tone').value,language:lang,includedOnlyConfirmed:get('included-only').checked}))}
+catch(error){get('status').textContent=error.message;get('status').classList.add('error')}
+finally{pending=false;get('toggle').disabled=!current?.running&&!get('included-only').checked}});
+get('language').addEventListener('change',async()=>{const wanted=get('language').value;try{render(await post('/api/language',{language:wanted}))}catch(error){get('status').textContent=error.message;get('status').classList.add('error');get('language').value=lang}});
+get('included-only').addEventListener('change',()=>{get('toggle').disabled=pending||(!current?.running&&!get('included-only').checked)});
+applyLanguage('ja');
+const stream=new EventSource(overlay?'/events?overlay=1':'/events');stream.onmessage=event=>{get('status').classList.remove('error');render(JSON.parse(event.data))};
+stream.onerror=()=>{get('status').textContent=tr('statusLost');get('connection').textContent=tr('connLost');get('dot').classList.remove('on')};setInterval(renderSubtitle,500);
+</script></body></html>
