@@ -6,7 +6,7 @@ try {
   if (command === 'build' && source) {
     console.log(await buildGamePack(path.resolve(source), path.resolve(output ?? 'runtime/game-packs/game.zip')));
   } else if (command === 'export-fe1') {
-    console.log(await exportFe1Pack(path.resolve(source ?? 'runtime/game-packs/fe1-jp-v1.zip')));
+    console.log(await exportFe1Pack(path.resolve(source ?? 'game-packs/fe1-jp-v1.zip')));
   } else if (command === 'list' && !source) {
     const packs = await prepareGamePacks();
     console.log(JSON.stringify(packs.map(({ id, version, title, rom, observation }) => ({ id, version, title, rom, observation })), null, 2));

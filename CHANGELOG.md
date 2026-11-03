@@ -6,6 +6,14 @@
 - Add coverage summaries and JSON output for recorded-session validation.
 - Prepare public documentation and exclude local analysis material from distribution.
 
+## 0.12.2
+
+- Resolve enemy names in battle records as well as map units. Local narration and Claude highlights use the PID name tables even with older Lua logs or after the defeated enemy leaves the roster, in Japanese and English. Unknown IDs still fall back to their class.
+
+## 0.12.1
+
+- Reuse protocol-compatible 0.2.2 shared services after updating, rather than refusing to start the app while MCP clients keep an older service alive. Prepare game-pack registrations in the connecting client as well.
+
 ## 0.12.0
 
 - Load game-specific Lua readers, JavaScript commentary adapters, names and optional observation engines from ZIP packs in `game-packs/`, without editing the built-in registries.

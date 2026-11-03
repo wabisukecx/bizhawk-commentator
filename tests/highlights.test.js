@@ -34,7 +34,7 @@ test('double hits and criticals are added to the fight narration; the counter-at
   assert.match(double.text, /オグマの連続攻撃が、二度とも当たりました/);
   const counterCrit = { ...doubleHit, follow_up: 0, attacker: { ...doubleHit.attacker, ...strikes(false, false), hp_after: 8 }, defender: { ...doubleHit.defender, hp_after: 18, ...strikes(true, false, true) } };
   const [text] = playByPlay([counterCrit], state, { tone: localizedTone('companion') });
-  assert.match(text.text, /かいぞくの必殺の一撃だよ/);
+  assert.match(text.text, /ガルダへいの必殺の一撃だよ/);
   assert.doesNotMatch(text.text, /オグマの必殺/);
 });
 
@@ -51,7 +51,7 @@ test('only defeats and criticals produce a highlight, with the side that was hit
   assert.equal(battleHighlight(doubleHit, state), null);
   const kill = battleHighlight({ ...doubleHit, id: 4, defender: { ...doubleHit.defender, hp_after: 0 } }, state);
   assert.equal(kill.key, 'highlight:4');
-  assert.equal(kill.context.facts.defeated, 'かいぞく');
+  assert.equal(kill.context.facts.defeated, 'ガルダへい');
   assert.equal(kill.context.facts.defeated_is_ours, false);
   assert.match(kill.context.focus, /繰り返さず/);
   const ourLoss = battleHighlight({ ...doubleHit, attacker: { ...doubleHit.attacker, hp_after: 0 } }, state);

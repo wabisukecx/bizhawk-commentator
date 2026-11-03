@@ -245,7 +245,7 @@ function profile.read(read, read_nametable)
             end
             local function who(i)
                 return { item_id=read(0x320+i), is_attack_item=attack_item(read(0x320+i)), pid=read(0x304+i), jid=read(0x306+i), class_name=classes[read(0x306+i)],
-                    name=names[read(0x304+i)], level=read(0x308+i), hp=read(0x30A+i), max_hp=read(0x30C+i),
+                    name=names[read(0x304+i)] or enemy_names[read(0x304+i)], level=read(0x308+i), hp=read(0x30A+i), max_hp=read(0x30C+i),
                     hp_after=read(0x334+i), strength=read(0x312+i), skill=read(0x314+i), weapon_level=read(0x316+i),
                     speed=read(0x318+i), luck=read(0x31A+i), defense=read(0x31C+i),
                     -- Per-strike results rolled up front: first strike / follow-up strike (RollFightHits, crits triple damage).

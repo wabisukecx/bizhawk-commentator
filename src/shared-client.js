@@ -5,7 +5,8 @@ import { tmpdir, userInfo } from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { FrameDecoder, encodeFrame } from './bridge.js';
-import { SERVICE_VERSION } from './version.js';
+import { COMPATIBLE_SERVICE_VERSIONS } from './version.js';
+import { prepareGamePacks } from './game-packs.js';
 
 export function brokerEndpoint(port) {
   const identity = `${userInfo().username}:${fileURLToPath(new URL('.', import.meta.url)).toLowerCase()}:${port}`;
@@ -23,6 +24,7 @@ export class SharedClient {
   constructor(port) { this.port = port; }
 
   async start() {
+    await prepareGamePacks();
     const endpoint = brokerEndpoint(this.port);
     let spawnError;
     let launched = false;
@@ -33,7 +35,7 @@ export class SharedClient {
         this.attach();
         const health = await this.call('health');
         if (health.protocol !== 1) throw new Error('Incompatible shared BizHawk service');
-        if (health.service_version !== SERVICE_VERSION) {
+        if (!COMPATIBLE_SERVICE_VERSIONS.includes(health.service_version)) {
           throw new Error(`旧版の共有サービス(${health.service_version})が動作中です。Claude DesktopとCommentatorをすべて終了し、15秒待ってから起動し直してください。`);
         }
         return;

@@ -29,7 +29,7 @@ test('Lua profile reads the fight struct: attacker first, results, and level-up 
     for k, v in pairs(fight) do mem[k] = v end
     local battle = profile.read(read).battle
     assert(battle.attacker.pid == 6 and battle.attacker.name == "ドーガ" and battle.attacker.class_name == "アーマーナイト")
-    assert(battle.defender.pid == 133 and battle.defender.name == nil and battle.defender.class_name == "かいぞく")
+    assert(battle.defender.pid == 133 and battle.defender.name == "ガルダへい" and battle.defender.class_name == "かいぞく")
     assert(battle.attacker.hp == 18 and battle.attacker.hp_after == 17 and battle.defender.hp_after == 2)
     assert(battle.after.level == 2 and battle.after.strength == 8 and battle.attacker.strength == 7 and battle.exp_gained == 16)
     assert(battle.attacker.damage == 8 and battle.defender.damage == 1)
@@ -59,7 +59,7 @@ test('a fight is narrated with who attacked whom, the result, and the level-up g
   assert.match(lines[0].text, /ドーガがレベル2に上がりました/);
   assert.match(lines[0].text, /力\+1、速さ\+1、幸運\+1/);
   assert.doesNotMatch(lines[0].text, /HP\+|守備\+|技\+/);
-  assert.match(lines[1].text, /ドーガ(が|の攻撃が)かいぞく/);
+  assert.match(lines[1].text, /ドーガ(が|の攻撃が)ガルダへい/);
   assert.match(lines[1].text, /18から2/);
   assert.match(lines[1].text, /反撃で、ドーガのHPは18から17/);
 });
@@ -68,11 +68,11 @@ test('kills, misses and an enemy attacking us are described from the same data',
   const state = world([unit('player:0', 'player', { character_id: 4, name: 'カイン' }), unit('enemy:0', 'enemy', { character_id: 133 })]);
   const enemyAttack = { ...fight, attacker: { ...pirate, hp: 18, hp_after: 18 }, defender: { ...doga, pid: 4, name: 'カイン', hp: 18, hp_after: 11 }, after: noLevelUp };
   const [hit] = playByPlay([enemyAttack], state, { tone: localizedTone('passion') });
-  assert.match(hit.text, /かいぞく/);
+  assert.match(hit.text, /ガルダへい/);
   assert.match(hit.text, /カイン/);
   assert.match(hit.text, /18から11/);
   const [kill] = playByPlay([{ ...fight, defender: { ...pirate, hp_after: 0 }, after: noLevelUp }], state, { tone: localizedTone('companion') });
-  assert.match(kill.text, /ドーガがかいぞくを倒したよ/);
+  assert.match(kill.text, /ドーガがガルダへいを倒したよ/);
   const [miss] = playByPlay([{ ...fight, defender: { ...pirate, hp_after: 18 }, attacker: { ...doga, hp_after: 18 }, after: noLevelUp }], state, { tone: localizedTone('calm') });
   assert.match(miss.text, /ダメージはありませんでした/);
   const [down] = playByPlay([{ ...fight, attacker: { ...doga, hp_after: 0 }, after: noLevelUp }], state, { tone: localizedTone('announcer') });
@@ -106,7 +106,44 @@ test('the watcher turns logged fights into narration, once', async () => {
   now = 20000; watcher.maybePlay();
   assert.equal(watcher.history.length, 1);
   assert.match(watcher.history[0].text, /ドーガがレベル2に上がりました/);
-  assert.match(watcher.history[0].text, /ドーガ(が|の攻撃が)かいぞく/);
+  assert.match(watcher.history[0].text, /ドーガ(が|の攻撃が)ガルダへい/);
   now = 40000; watcher.accept(poll([entry])); watcher.maybePlay();
   assert.equal(watcher.history.length, 1, 'the same logged fight is not narrated again');
+});
+
+test('Jagen defeating an enemy absent from the roster uses its name in narration and Claude facts, in both languages', async t => {
+  for (const language of ['ja', 'en']) {
+    let now = 0;
+    const watcher = new Watcher({ language, tone: 'passion', clock: () => now, includedOnlyConfirmed: true,
+      authenticate: async () => ({ plan: 'pro' }), generate: async () => ({ speak: false, comment: '' }) });
+    t.after(() => watcher.stop());
+    await watcher.start('lively', { includedOnlyConfirmed: true });
+    const state = world([unit('player:0', 'player', { character_id: 3, name: 'ジェイガン', hp: 17, max_hp: 22 })]);
+    const logged = { id: 1, frame: 500, order_flag_raw: 0, follow_up: 1, after: { level: 1 },
+      attacker: { pid: 3, name: 'ジェイガン', class_name: 'パラディン', level: 1, hp: 20, max_hp: 22, hp_after: 17, damage: 9, hit_first: true, hit_second: true },
+      defender: { pid: 133, class_name: 'かいぞく', level: 1, hp: 18, max_hp: 18, hp_after: 0, damage: 3, hit_first: true } };
+    const poll = log => ({ game_state: state, recent_observations: { timeline_id: 'jagen:1', events: [] }, battle_log: log });
+    watcher.accept(poll([]));
+    now = 2500; watcher.accept(poll([logged]));
+    now = 20000; watcher.maybePlay();
+    const text = watcher.history.at(-1).text;
+    if (language === 'ja') {
+      assert.match(text, /ジェイガンがガルダへいを倒した！/);
+      assert.match(text, /連続攻撃が二発とも入った/);
+      assert.match(text, /20から17/);
+      assert.doesNotMatch(text, /かいぞく/);
+    } else {
+      assert.match(text, /Jagen takes down Garuda soldier!/);
+      assert.doesNotMatch(text, /Pirate|かいぞく|ガルダへい/);
+    }
+    assert.equal(watcher.highlightReady.context.facts.defeated, language === 'ja' ? 'ガルダへい' : 'Garuda soldier');
+    assert.equal(logged.defender.name, undefined, 'an old bridge log need not be mutated or reread');
+  }
+});
+
+test('unknown fight IDs still fall back to the class in the selected language', () => {
+  const unknown = { ...fight, defender: { ...pirate, pid: 240, hp_after: 0 }, after: noLevelUp };
+  assert.match(playByPlay([unknown], world([]), { tone: localizedTone('passion') })[0].text, /かいぞくを倒した/);
+  const english = { ...unknown, attacker: { ...doga, name: 'Draug', class_name: 'Armor Knight' }, defender: { ...unknown.defender, class_name: 'Pirate' } };
+  assert.match(playByPlay([english], world([]), { tone: localizedTone('passion', 'en') })[0].text, /Draug takes down the Pirate/);
 });

@@ -132,3 +132,9 @@ export function unitName(unit) {
   if (unit.localized) return unit.name ?? unit.candidate_name; // already in the display language
   return unit.side === 'player' ? playerNames[unit.character_id] ?? unit.name : unit.name ?? enemyNames[unit.character_id];
 }
+
+// Fight records use pid instead of character_id and may outlive a defeated map unit.
+export function battleName(combatant) {
+  if (combatant.localized) return combatant.name;
+  return combatant.name ?? playerNames[combatant.pid] ?? enemyNames[combatant.pid];
+}

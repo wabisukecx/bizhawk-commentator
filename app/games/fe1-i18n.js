@@ -1,4 +1,4 @@
-import { playerNames } from './fe1-names.js';
+import { playerNames, enemyNames, battleName } from './fe1-names.js';
 
 // English names for the Japanese Famicom game. Only names that are well established in the official English
 // releases are listed; every other character falls back to a Hepburn romanization of the Japanese name.
@@ -76,14 +76,16 @@ export function localizeSnapshot(snapshot) {
   const byKey = new Map();
   const unit = u => {
     u.localized = true;
-    const japanese = u.name ?? (u.side === 'player' ? playerNames[u.character_id] : undefined);
+    const japanese = u.name ?? (u.side === 'player' ? playerNames[u.character_id] : enemyNames[u.character_id]);
     if (japanese) { u.name_ja = japanese; u.name = englishName(u.character_id, japanese); }
     if (u.candidate_name) { u.candidate_name_ja = u.candidate_name; u.candidate_name = englishName(u.character_id, u.candidate_name); }
     if (u.class_name) { u.class_name_ja = u.class_name; u.class_name = englishClass(u.class_name); }
     byKey.set(u.key, u.name ?? u.candidate_name);
   };
   const who = w => {
-    if (w.name) { w.name_ja = w.name; w.name = englishName(w.pid, w.name); }
+    const japanese = w.name_ja ?? battleName(w);
+    if (japanese) { w.name_ja = japanese; w.name = englishName(w.pid, japanese); }
+    w.localized = true;
     if (w.class_name) { w.class_name_ja = w.class_name; w.class_name = englishClass(w.class_name); }
   };
   copy.game_state?.units?.forEach(unit);

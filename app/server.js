@@ -5,7 +5,7 @@ import { fileURLToPath } from 'node:url';
 import { Watcher } from './watcher.js';
 
 export async function createApp({ watcher = new Watcher(), port = 8989, host = '127.0.0.1', savePreferences = async () => {} } = {}) {
-  const page = await readFile(new URL('./ui.html', import.meta.url));
+  const pageUrl = new URL('./ui.html', import.meta.url);
   const subscribers = new Set();
   const controls = new Set();
   let closeTimer;
@@ -20,7 +20,11 @@ export async function createApp({ watcher = new Watcher(), port = 8989, host = '
     const send = (status, data) => { response.writeHead(status, { 'Content-Type': 'application/json; charset=utf-8' }); response.end(JSON.stringify(data)); };
     if (request.headers.host !== `127.0.0.1:${address.port}`) { send(403, { error: t('localOnly') }); return; }
     if (request.method === 'GET' && ['/', '/overlay'].includes(request.url)) {
-      response.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' }); response.end(page); return;
+      try {
+        const page = await readFile(pageUrl);
+        response.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' }); response.end(page);
+      } catch { send(500, { error: 'Could not load the control page.' }); }
+      return;
     }
     if (request.method === 'GET' && request.url === '/api/state') { send(200, watcher.publicState()); return; }
     if (request.method === 'GET' && ['/events', '/events?overlay=1'].includes(request.url)) {

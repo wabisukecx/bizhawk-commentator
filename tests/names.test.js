@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
-import { playerNames, enemyNames, unitName } from '../app/games/fe1-names.js';
+import { playerNames, enemyNames, unitName, battleName } from '../app/games/fe1-names.js';
 import { fe1 } from '../app/games/fe1.js';
 
 test('name lookup uses character ID, handles old bridge data and does not name generic enemies', async () => {
@@ -18,6 +18,16 @@ test('name lookup uses character ID, handles old bridge data and does not name g
   const split = lua.indexOf('local enemy_names');
   assert.deepEqual(tableOf(lua.slice(0, split)), playerNames, 'Lua and automatic commentary must use identical PID names');
   assert.deepEqual(tableOf(lua.slice(split, lua.indexOf('local classes'))), enemyNames, 'and identical enemy names');
+});
+
+test('fight names use PID tables even after a defeated enemy leaves the roster; unknown IDs stay unnamed', () => {
+  assert.equal(battleName({ pid: 3 }), 'ジェイガン');
+  assert.equal(battleName({ pid: 133 }), 'ガルダへい');
+  assert.equal(battleName({ pid: 129 }), 'ガザック');
+  assert.equal(battleName({ pid: 173 }), 'ダロス');
+  assert.equal(battleName({ pid: 240 }), undefined);
+  assert.equal(battleName({ pid: 133, localized: true, name: 'Garuda soldier' }), 'Garuda soldier');
+  assert.equal(battleName({ pid: 133, localized: true }), undefined, 'a localized record must not leak a Japanese fallback');
 });
 
 test('both selected facts and full model input name a newly recruited ally without a Lua restart', () => {

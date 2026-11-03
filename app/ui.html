@@ -15,19 +15,19 @@ const get=id=>document.getElementById(id);
 const I18N={
 ja:{title:'遊ぶ時間に、ひとこと。',connChecking:'接続を確認中',connOn:'BizHawk 接続済み',connOff:'BizHawk 接続待ち',connLost:'アプリに再接続中',captionLabel:'いまの字幕',
 placeholder:'ゲームの動きを見ながら、<br>気づいたことを、ぽつぽつと。',watching:'見守っています。',statusReady:'準備しています。',statusLost:'アプリとの接続を確認しています。',
-notice:'サブスク内で使うため、Claudeの「追加使用量／Usage credits」はオフにしてください。オンだと、APIキーなしでもPro枠を超えて有料で続行されます。',noticeLink:'Claudeの使用量設定を開く ↗',
+notice:'サブスク内で使うため、Claudeの「追加使用量／Usage credits」はオフにしてください。オンだと、APIキーなしでもサブスクの利用枠を超えて有料で続行されます。',noticeLink:'Claudeの使用量設定を開く ↗',
 modelLabel:'AIモデル',frequencyLabel:'話しかける頻度',freqQuiet:'控えめ — 大きな変化を中心に',freqBalanced:'ときどき — 移動にも時々反応',freqLively:'少し多め — 小さな変化も拾う',
 toneLabel:'実況の口調',voiceLabel:'読み上げ（このブラウザの音声）',voiceOff:'字幕のみ（音声なし）',voiceTest:'音声のテストです。',includedOnly:'Claudeの「追加使用量」をオフにしている',
-start:'見守りを開始',stop:'見守りを停止',fine:'変化がない間は静かに。操作画面を閉じると停止します。',usageDefault:'Claude Proの利用枠を使います。APIキーは使用しません。',
-usagePlan:(plan)=>`Claude ${plan==='pro'?'Pro':plan} の利用枠で実行。`,count:(n,limit)=>`このアプリの直近1時間の生成：${n} / ${limit}回（Pro全体の利用上限とは別です）`,
+start:'見守りを開始',stop:'見守りを停止',fine:'変化がない間は静かに。操作画面を閉じると停止します。',usageDefault:'Claudeのサブスク利用枠を使います。APIキーは使用しません。',
+usagePlan:(plan)=>`Claude ${plan==='pro'?'Pro':plan} の利用枠で実行。`,count:(n,limit)=>`このアプリの直近1時間の生成：${n} / ${limit}回（サブスク全体の利用上限とは別です）`,
 historyTitle:'これまでのひとこと',historyEmpty:'見守りを始めた後の変化に反応します。',overlayLink:'字幕だけを別画面で開く ↗',live:'実況',locale:'ja-JP',zone:'Asia/Tokyo'},
 en:{title:'A word while you play.',connChecking:'Checking connection',connOn:'BizHawk connected',connOff:'Waiting for BizHawk',connLost:'Reconnecting to the app',captionLabel:'Current caption',
 placeholder:'Watching the game and<br>commenting now and then.',watching:'Watching.',statusReady:'Getting ready.',statusLost:'Checking the connection to the app.',
-notice:'To stay within your subscription, turn off Extra usage (usage credits) in Claude. If it is on, usage can continue past your Pro allowance and be billed, even without an API key.',noticeLink:'Open Claude usage settings ↗',
+notice:'To stay within your subscription, turn off Extra usage (usage credits) in Claude. If it is on, usage can continue past your subscription allowance and be billed, even without an API key.',noticeLink:'Open Claude usage settings ↗',
 modelLabel:'AI model',frequencyLabel:'How often to speak',freqQuiet:'Quiet — big changes only',freqBalanced:'Balanced — occasional reactions to movement',freqLively:'Lively — pick up small changes too',
 toneLabel:'Commentary tone',voiceLabel:'Read aloud (this browser\'s voice)',voiceOff:'Captions only (no voice)',voiceTest:'This is a voice test.',includedOnly:'Extra usage in Claude is turned off',
-start:'Start watching',stop:'Stop watching',fine:'Quiet while nothing changes. Closing this page stops watching.',usageDefault:'Uses your Claude Pro allowance. No API key is used.',
-usagePlan:(plan)=>`Running on your Claude ${plan==='pro'?'Pro':plan} allowance.`,count:(n,limit)=>`Generations by this app in the last hour: ${n} / ${limit} (separate from your overall Pro limit)`,
+start:'Start watching',stop:'Stop watching',fine:'Quiet while nothing changes. Closing this page stops watching.',usageDefault:'Uses your Claude subscription allowance. No API key is used.',
+usagePlan:(plan)=>`Running on your Claude ${plan==='pro'?'Pro':plan} allowance.`,count:(n,limit)=>`Generations by this app in the last hour: ${n} / ${limit} (separate from your overall subscription limit)`,
 historyTitle:'What was said',historyEmpty:'Reacts to changes after you start watching.',overlayLink:'Open captions only in another window ↗',live:'Live',locale:'en-US',zone:undefined}};
 let current=null,pending=false,historySignature='',lang='ja',toneLang=null;
 const tr=key=>I18N[lang][key];

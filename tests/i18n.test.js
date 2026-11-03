@@ -79,6 +79,7 @@ test('a snapshot is localized once: names, classes, battle sides; Japanese names
   assert.equal(copy.game_state.units[2].class_name, 'Pirate');
   assert.equal(copy.battle_log[0].attacker.name, 'Draug');
   assert.equal(copy.battle_log[0].defender.class_name, 'Pirate');
+  assert.equal(copy.battle_log[0].defender.name, 'Garuda soldier', 'old fight logs without names are also localized by PID');
   assert.equal(source.game_state.units[0].name, 'ドーガ', 'the original is not modified');
   // The dialogue is Japanese: a named unit is still found by its Japanese name and reported by its English one.
   const [daros] = mentionedUnits(['ダロスっていうかいぞくが'], copy.game_state);
@@ -86,7 +87,7 @@ test('a snapshot is localized once: names, classes, battle sides; Japanese names
   assert.equal(dialogueContext(['ダロスっていうかいぞくが'], copy.game_state).facts.mentioned_units[0].name, 'Darosu');
 });
 
-test('English play-by-play reads naturally: joined sentences, capitals, "the Pirate", growth labels', () => {
+test('English play-by-play reads naturally: joined sentences, enemy names and growth labels', () => {
   const source = snapshot([unit('player:0', 'player', { character_id: 6, name: 'ドーガ' }), unit('enemy:0', 'enemy', { character_id: 133 })]);
   const state = localizeSnapshot(source).game_state;
   const side = (pid, name, className, hp, hpAfter, flags) => ({ pid, name, class_name: className, level: 1, hp, max_hp: 18, hp_after: hpAfter, strength: 7, skill: 3, speed: 3, luck: 1, defense: 11, damage: 8, ...flags });
@@ -95,11 +96,11 @@ test('English play-by-play reads naturally: joined sentences, capitals, "the Pir
     defender: side(133, undefined, 'Pirate', 18, 2, { hit_first: true }), after: { level: 2, max_hp: 18, exp: 4, strength: 8, skill: 3, speed: 4, luck: 2, defense: 11 } };
   const lines = playByPlay([fight], state, { tone: localizedTone('announcer', 'en') });
   assert.match(lines[0].text, /^Draug reaches level 2\. Str \+1, Spd \+1, Lck \+1\.$/);
-  assert.match(lines[1].text, /^Draug (attacks the Pirate, whose HP drops from 18 to 2|lands a blow on the Pirate\. HP goes from 18 to 2)\./);
+  assert.match(lines[1].text, /^Draug (attacks Garuda soldier, whose HP drops from 18 to 2|lands a blow on Garuda soldier\. HP goes from 18 to 2)\./);
   assert.match(lines[1].text, /Draug lands both strikes\./);
   assert.match(lines[1].text, /On the counter, Draug's HP goes from 18 to 17\./);
   const approach = playByPlay([{ event_id: 5, type: 'position_changed', side: 'enemy', unit_key: 'enemy:0', from: { x: 9, y: 5 }, to: { x: 6, y: 5 } }], state, { tone: localizedTone('companion', 'en') });
-  assert.equal(approach[0].text, 'The Pirate is closing in on Draug.');
+  assert.equal(approach[0].text, 'Garuda soldier is closing in on Draug.');
   const turn = playByPlay([{ event_id: 6, type: 'turn_changed', from: 2, to: 3 }], state, { tone: localizedTone('passion', 'en') });
   assert.match(turn[0].text, /^(Turn 3, here we go!|On to turn 3!) Allies 1, enemies 1!/);
 });
@@ -142,7 +143,7 @@ test('the watcher runs in English end to end: localized names, English text, Eng
   const move = { event_id: 1, type: 'position_changed', side: 'enemy', unit_key: 'enemy:0', name: undefined, from: { x: 12, y: 5 }, to: { x: 9, y: 5 } };
   now = 2500; watcher.accept(poll(units, [move]));
   now = 20000; watcher.maybePlay();
-  assert.equal(watcher.history.at(-1).text, 'The Pirate is closing in on Draug.');
+  assert.equal(watcher.history.at(-1).text, 'Garuda soldier is closing in on Draug.');
   assert.throws(() => watcher.setLanguage('ja'), /cannot be changed while watching/);
   watcher.stop();
   assert.equal(watcher.publicState().message, 'Stopped watching.');

@@ -47,13 +47,13 @@ test('the watcher says who attacked from the phase: enemy attacks name the enemy
   // Our phase: a fight right after the turn started.
   now = 2500; watcher.accept(poll([turn(10)], [fight(1, 20)]));
   const ours = await say();
-  assert.match(ours, /^マジ(が|の攻撃が)ソシアルナイト/, ours);
+  assert.match(ours, /^マジ(が|の攻撃が)グルニアへい/, ours);
   assert.match(ours, /16から9/);
 
   // The enemy moves, then fights: the Social Knight is the attacker and Maji is hit.
   now += 3000; watcher.accept(poll([enemyMoves(200)], [fight(2, 220)]));
   const theirs = await say();
-  assert.match(theirs, /^ソシアルナイト(が|の攻撃が)マジ/, theirs);
+  assert.match(theirs, /^グルニアへい(が|の攻撃が)マジ/, theirs);
   assert.match(theirs, /13から5/);
   assert.doesNotMatch(theirs, /^マジが/);
 
@@ -136,11 +136,11 @@ test('banner sightings logged by the bridge decide the phase for fights, before 
   // The enemy phase begins (COMPUTER at frame 100); an enemy attacks in place without anything having moved.
   now = 2500; watcher.accept(poll([{ id: 1, phase: 'enemy', frame: 100 }], [fight(1, 140)]));
   now += 30000; watcher.maybePlay();
-  assert.match(watcher.history.at(-1).text, /^ソシアルナイト(が|の攻撃が)マジ/, watcher.history.at(-1).text);
+  assert.match(watcher.history.at(-1).text, /^グルニアへい(が|の攻撃が)マジ/, watcher.history.at(-1).text);
   // PLAYER appears at frame 300: later fights are ours again.
   now += 3000; watcher.accept(poll([{ id: 1, phase: 'enemy', frame: 100 }, { id: 2, phase: 'player', frame: 300 }], [fight(1, 140), fight(2, 340)]));
   assert.equal(watcher.phaseAt(140), 'enemy');
   assert.equal(watcher.phaseAt(340), 'player');
   now += 30000; watcher.maybePlay();
-  assert.match(watcher.history.at(-1).text, /^マジ(が|の攻撃が)ソシアルナイト/, watcher.history.at(-1).text);
+  assert.match(watcher.history.at(-1).text, /^マジ(が|の攻撃が)グルニアへい/, watcher.history.at(-1).text);
 });

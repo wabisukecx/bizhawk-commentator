@@ -4,7 +4,7 @@ export { selectCandidate } from './fe1-analysis.js';
 export { playByPlay } from './fe1-play.js';
 import { playByPlay, analyzeBattle } from './fe1-play.js';
 import { selectCandidate } from './fe1-analysis.js';
-import { unitName } from './fe1-names.js';
+import { unitName, battleName } from './fe1-names.js';
 import { localizeSnapshot } from './fe1-i18n.js';
 import { t } from '../i18n.js';
 
@@ -163,7 +163,7 @@ export function battleHighlight(entry, state) {
   if (result.staff) return null;
   const critBy = result.attacker.crit ? entry.attacker : result.defender.crit ? entry.defender : null;
   if (!result.defeated && !critBy) return null;
-  const name = who => who.name ?? who.class_name ?? '敵';
+  const name = who => battleName(who) ?? who.class_name ?? '敵';
   const ours = who => state.units.some(unit => unit.side === 'player' && unit.character_id === who.pid);
   const down = result.defeated === 'defender' ? entry.defender : result.defeated === 'attacker' ? entry.attacker : null;
   return { key: `highlight:${entry.id}`, context: {

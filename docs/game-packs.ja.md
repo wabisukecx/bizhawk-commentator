@@ -25,10 +25,10 @@ npm.cmd run game-pack -- list
 npm.cmd run game-pack -- export-fe1
 ```
 
-`runtime/game-packs/fe1-jp-v1.zip`に書き出します。Luaのプロファイルと文字表、アプリの解析・実況ロジック、人物名・英語名の表を含みます。ROM画像は含みません。出力先を指定する場合:
+読み込み先の`game-packs/fe1-jp-v1.zip`に書き出します。Luaのプロファイルと文字表、アプリの解析・実況ロジック、人物名・英語名の表を含みます。ROM画像は含みません。既存のFE1パックがある場合は更新します。導入・更新の反映にはアプリ／MCPサービスとLuaの再起動が必要です。配布用など、別の出力先を指定する場合:
 
 ```powershell
-npm.cmd run game-pack -- export-fe1 game-packs/fe1-jp-v1.zip
+npm.cmd run game-pack -- export-fe1 runtime/game-packs/fe1-jp-v1.zip
 ```
 
 FEは従来どおり本体内蔵でも動作します。同じIDのパックを追加すると、パック版が内蔵版に代わります。パックを外すと内蔵版に戻ります。既存実装をZIPへまとめる書き出し機能なので、ゲーム固有のコードをすべて宣言的なデータに変換するものではありません。

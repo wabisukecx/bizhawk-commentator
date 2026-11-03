@@ -1,6 +1,8 @@
 // Local play-by-play: fixed wording from observed differences, no model call.
 // Each line pairs the change with the situation around it; a bare change is not worth saying.
 import { phrase } from '../tones.js';
+import { unitName, battleName } from './fe1-names.js';
+import { englishName } from './fe1-i18n.js';
 
 const dist = (a, b) => Math.abs(a.x - b.x) + Math.abs(a.y - b.y);
 const ratio = unit => unit.max_hp ? unit.hp / unit.max_hp : 1;
@@ -75,8 +77,11 @@ export function playByPlay(events, state, { tone, settled = false }) {
   };
   // A unit with a name is called by it; otherwise by its class ("the Pirate" in English).
   const called = (name, className) => name ?? (className ? (english ? `the ${className}` : className) : tone.enemyLabel);
-  const displayName = unit => called(unit.name, unit.class_name);
-  const combatantName = who => called(who.name, who.class_name);
+  const displayName = unit => called(unit.name ?? unitName(unit), unit.class_name);
+  const combatantName = who => {
+    const name = battleName(who);
+    return called(english && !who.localized ? englishName(who.pid, name) : name, who.class_name);
+  };
 
   const partyStatus = n => {
     const worst = players.reduce((a, b) => (a && ratio(a) <= ratio(b) ? a : b), null);
