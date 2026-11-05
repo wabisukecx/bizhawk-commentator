@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Add FE1 observed enemy appearances, village destruction, chest opening, healing-terrain recovery context and class changes; confirm new map/roster events in a second sample and discard them across timeline gaps. Add effective-hit and low-hit-rate battle details, near-level experience and remaining unacted allies during the player phase. Future reinforcement schedules are not used. Gameplay timing remains unverified.
+- Stop FE1 chapter-opening narration triggered solely by RAM chapter changes, which can precede the on-screen introduction. Clarify the no-spoilers rule for automatic commentary.
 - Strengthen Japanese/English phrase tests to detect missing or extra placeholders.
 - Add coverage summaries and JSON output for recorded-session validation.
 - Prepare public documentation and exclude local analysis material from distribution.
